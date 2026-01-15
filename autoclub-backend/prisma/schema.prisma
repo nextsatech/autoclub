@@ -1,0 +1,69 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. Gestión de Usuarios y Roles [cite: 9]
+model Role {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique // ADMIN, PROFESSOR, STUDENT 
+  description String?
+  users       User[]
+}
+
+model User {
+  id            Int        @id @default(autoincrement())
+  email         String     @unique
+  password_hash String
+  full_name     String
+  role_id       Int
+  role          Role       @relation(fields: [role_id], references: [id])
+  student       Student?
+  professor     Professor?
+}
+
+// 2. Perfiles específicos
+model Student {
+  id           Int           @id @default(autoincrement())
+  user_id      Int           @unique
+  user         User          @relation(fields: [user_id], references: [id])
+  reservations Reservation[]
+}
+
+model Professor {
+  id      Int     @id @default(autoincrement())
+  user_id Int     @unique
+  user    User    @relation(fields: [user_id], references: [id])
+  classes Class[]
+}
+
+// 3. Malla Horaria y Control de Cupos 
+model Class {
+  id                 Int           @id @default(autoincrement())
+  title              String?
+  class_date         DateTime      @db.Date
+  start_time         DateTime      @db.Time
+  end_time           DateTime      @db.Time
+  max_capacity       Int // Cupo máximo [cite: 19]
+  available_capacity Int // Control de disponibilidad en tiempo real 
+  professor_id       Int
+  professor          Professor     @relation(fields: [professor_id], references: [id])
+  reservations       Reservation[]
+  status             String        @default("OPEN")
+}
+
+model Reservation {
+  id         Int      @id @default(autoincrement())
+  status     String   @default("ACTIVE")
+  student_id Int
+  student    Student  @relation(fields: [student_id], references: [id])
+  class_id   Int
+  class      Class    @relation(fields: [class_id], references: [id])
+  created_at DateTime @default(now())
+}

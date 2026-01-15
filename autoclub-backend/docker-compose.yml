@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: autoclub_db
+    environment:
+      POSTGRES_USER: autoclub_user
+      POSTGRES_PASSWORD: autoclub_pass
+      POSTGRES_DB: autoclub_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
