@@ -7,21 +7,32 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 1. Configuración del Sistema 
 model LicenseCategory {
-  id       Int       @id @default(autoincrement())
-  name     String    @unique // Ej: A2, B1, C1
-  subjects Subject[] // Relación muchos a muchos (Qué materias ve esta licencia)
+  id   Int    @id @default(autoincrement())
+  name String @unique // Ej: "A2", "B1", "C1"
+
+  subjects Subject[]
   students Student[]
 }
 
+model Module {
+  id   Int    @id @default(autoincrement())
+  name String @unique // Ej: "Módulo Teórico", "Módulo Básico"
+
+  subjects Subject[]
+}
+
 model Subject {
-  id           Int               @id @default(autoincrement())
-  name         String            @unique // Ej: "Mecánica Básica", "Ética"
+  id           Int     @id @default(autoincrement())
+  name         String  @unique
   description  String?
-  is_practical Boolean           @default(false) // Para diferenciar teoría de práctica si es necesario
-  categories   LicenseCategory[] // A qué licencias aplica esta materia
-  classes      Class[]
+  is_practical Boolean @default(false)
+
+  categories LicenseCategory[]
+
+  classes  Class[]
+  module   Module? @relation(fields: [moduleId], references: [id])
+  moduleId Int?
 }
 
 // 2. Usuarios y Roles
@@ -33,23 +44,25 @@ model Role {
 }
 
 model User {
-  id            Int        @id @default(autoincrement())
-  email         String     @unique
-  password_hash String
-  full_name     String
-  role_id       Int
-  role          Role       @relation(fields: [role_id], references: [id])
-  student       Student?
-  professor     Professor?
+  id              Int        @id @default(autoincrement())
+  email           String     @unique
+  password_hash   String
+  full_name       String
+  document_type   String? // Ej: CC, TI, CE
+  document_number String?    @unique
+  role_id         Int
+  role            Role       @relation(fields: [role_id], references: [id])
+  student         Student?
+  professor       Professor?
 }
 
 model Student {
-  id                  Int              @id @default(autoincrement())
-  user_id             Int              @unique
-  user                User             @relation(fields: [user_id], references: [id])
-  license_category_id Int? // El estudiante pertenece a una categoría (A2, B1...)
-  license_category    LicenseCategory? @relation(fields: [license_category_id], references: [id])
-  reservations        Reservation[]
+  id                 Int               @id @default(autoincrement())
+  user_id            Int               @unique
+  user               User              @relation(fields: [user_id], references: [id])
+  license_categories LicenseCategory[]
+
+  reservations Reservation[]
 }
 
 model Professor {

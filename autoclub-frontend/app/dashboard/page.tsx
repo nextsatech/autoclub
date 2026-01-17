@@ -4,159 +4,124 @@ import { useEffect, useState } from 'react';
 import StatCard from './components/StatCard';
 import Link from 'next/link';
 
-interface DashboardStats {
-  totalReservations: number;
-  nextClass?: string;
-  active: boolean;
-}
+const API_URL = 'http://localhost:3000';
 
 export default function DashboardPage() {
-  const [role, setRole] = useState<string | null>(null);
+  const [stats, setStats] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<DashboardStats>({ totalReservations: 0, active: false });
 
   useEffect(() => {
-    const fetchData = async () => {
-      const userStr = localStorage.getItem('user');
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+
+    const fetchStats = async () => {
       const token = localStorage.getItem('token');
-
-      if (userStr && token) {
-        const user = JSON.parse(userStr);
-        
-        const userRole = user.role?.name || user.role || 'STUDENT';
-        setRole(userRole);
-
-        if (userRole === 'STUDENT') {
-          try {
-            const res = await fetch('http://localhost:3000/reservations', {
-              headers: { 'Authorization': `Bearer ${token}` }
-            });
-            
-            if (res.ok) {
-              const data = await res.json();
-              const upcoming = data.find((r: any) => new Date(r.class.class_date) > new Date());
-              
-              setStats({
-                totalReservations: data.length,
-                nextClass: upcoming ? new Date(upcoming.class.class_date).toLocaleDateString() : 'Sin agendar',
-                active: true
-              });
-            }
-          } catch (error) {
-            console.error(error);
-          }
-        }
+      try {
+        const res = await fetch(`${API_URL}/dashboard-stats`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) setStats(await res.json());
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
-
-    fetchData();
+    fetchStats();
   }, []);
 
-  if (loading) {
-    return <div className="p-8 text-zinc-500">Cargando tablero de control...</div>;
-  }
+  const getRoleDisplayName = (roleName: string) => {
+    switch (roleName) {
+      case 'admin': return 'Panel de Administración General';
+      case 'student': return 'Portal de Aprendizaje';
+      case 'professor': return 'Panel de Instructor';
+      default: return 'Panel de Usuario';
+    }
+  };
 
-  if (role === 'ADMIN') {
-    return (
-      <div className="space-y-8 animate-in fade-in duration-500">
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-900">Panel Administrativo</h1>
-          <p className="text-zinc-500 text-sm mt-1">Visión global de la escuela de conducción.</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard title="Estudiantes Activos" value="24" icon="bi-people-fill" trend="+5 nuevos" />
-          <StatCard title="Clases Hoy" value="8" icon="bi-calendar-event" />
-          <StatCard title="Instructores" value="3" icon="bi-person-badge-fill" />
-          <StatCard title="Graduados" value="15" icon="bi-mortarboard-fill" trend="+3 este mes" />
-        </div>
-
-        <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-8 text-center">
-            <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i className="bi bi-gear-wide-connected text-2xl"></i>
-            </div>
-            <h3 className="text-lg font-bold text-zinc-800">Gestión del Sistema</h3>
-            <p className="text-zinc-500 text-sm mb-6 max-w-md mx-auto">
-                Desde aquí puedes crear nuevas clases en la malla horaria, registrar profesores o ver los logs del sistema.
-            </p>
-            <div className="flex gap-4 justify-center">
-                <button className="bg-zinc-900 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-black transition-colors">
-                    Crear Clase
-                </button>
-                <button className="bg-white border border-zinc-200 text-zinc-700 px-6 py-2 rounded-lg text-sm font-medium hover:bg-zinc-50 transition-colors">
-                    Ver Usuarios
-                </button>
-            </div>
-        </div>
-      </div>
-    );
-  }
+  if (loading || !user) return <div className="p-10 animate-pulse text-gray-500">Cargando panel...</div>;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex justify-between items-end">
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-900">Mi Progreso</h1>
-          <p className="text-zinc-500 text-sm mt-1">Resumen de tu formación práctica.</p>
-        </div>
-        <Link href="/dashboard/booking" className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">
-          <i className="bi bi-plus-lg mr-2"></i>
-          Nuevo Registro
-        </Link>
+      
+      <div>
+        <h1 className="text-3xl font-black text-gray-900">Hola, {user.full_name?.split(' ')[0]} 👋</h1>
+        <p className="text-gray-500 mt-1 font-medium">
+          {getRoleDisplayName(user.role?.name)}
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <StatCard 
-          title="Reservas Totales" 
-          value={stats.totalReservations} 
-          icon="bi-journal-check" 
-        />
-        <StatCard 
-          title="Próxima Clase" 
-          value={stats.nextClass || '---'} 
-          icon="bi-calendar-event-fill" 
-        />
-        <StatCard 
-          title="Estado Licencia" 
-          value="Activa" 
-          icon="bi-person-vcard-fill" 
-          trend="En curso"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-zinc-100 shadow-sm p-6">
-          <h3 className="font-bold text-zinc-800 mb-6">Actividad Reciente</h3>
-          
-          {stats.totalReservations === 0 ? (
-            <div className="h-48 flex flex-col items-center justify-center text-zinc-400 bg-zinc-50 rounded-xl border border-dashed border-zinc-200">
-               <i className="bi bi-inbox text-4xl mb-2"></i>
-               <p className="text-sm">Aún no tienes clases registradas.</p>
-            </div>
-          ) : (
-            <div className="h-48 flex flex-col items-center justify-center bg-indigo-50/50 rounded-xl border border-indigo-100">
-                <p className="text-indigo-800 font-medium">¡Vas muy bien!</p>
-                <p className="text-indigo-600/70 text-sm">Has completado {stats.totalReservations} sesiones prácticas.</p>
-            </div>
-          )}
-        </div>
-
-        <div className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-2xl p-6 text-white relative overflow-hidden shadow-xl shadow-indigo-200">
-          <div className="relative z-10">
-            <h3 className="font-bold text-lg mb-2">¿Listo para conducir?</h3>
-            <p className="text-indigo-100 text-sm mb-6 leading-relaxed">
-              Recuerda que debes completar al menos 10 horas prácticas antes de tu examen final.
-            </p>
-            <Link href="/dashboard/booking">
-                <button className="w-full bg-white text-indigo-700 font-bold py-3 rounded-xl hover:bg-indigo-50 transition-colors shadow-sm">
-                Agendar Horario
-                </button>
-            </Link>
+      {user.role?.name === 'admin' && stats && (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCard title="Estudiantes" value={stats.students} icon="bi-people-fill" color="bg-blue-500" />
+            <StatCard title="Instructores" value={stats.professors} icon="bi-person-badge-fill" color="bg-purple-500" />
+            <StatCard title="Clases Activas" value={stats.activeClasses} icon="bi-calendar-check-fill" color="bg-green-500" />
+            <StatCard title="Reservas" value={stats.reservations} icon="bi-bookmark-check-fill" color="bg-orange-500" />
           </div>
-          <i className="bi bi-speedometer absolute -bottom-6 -right-6 text-9xl text-white opacity-10 rotate-12"></i>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <h3 className="font-bold text-gray-900 mb-4">Acciones Rápidas</h3>
+              <div className="space-y-3">
+                <QuickAction href="/dashboard/admin/users" icon="bi-person-plus" text="Registrar Nuevo Usuario" />
+                <QuickAction href="/dashboard/admin/classes" icon="bi-plus-circle" text="Programar Nueva Clase" />
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {user.role?.name === 'student' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          <div className="lg:col-span-2 bg-gradient-to-r from-indigo-600 to-violet-600 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+            <div className="relative z-10">
+              <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider backdrop-blur-md">
+                Tu progreso
+              </span>
+              <h2 className="text-3xl font-black mt-4 mb-2">¿Listo para tu próxima práctica?</h2>
+              <p className="text-indigo-100 mb-8 max-w-md">
+                Recuerda completar tus horas prácticas. Revisa la disponibilidad de esta semana.
+              </p>
+              <Link href="/dashboard/student/schedule" className="bg-white text-indigo-600 px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-gray-50 transition-colors inline-flex items-center gap-2">
+                <i className="bi bi-calendar-plus-fill"></i> Reservar Clase Ahora
+              </Link>
+            </div>
+            <div className="absolute right-0 bottom-0 opacity-10 transform translate-x-10 translate-y-10">
+              <i className="bi bi-car-front-fill text-[200px]"></i>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-center items-center text-center">
+            <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center text-green-500 mb-4">
+               <i className="bi bi-check-circle-fill text-2xl"></i>
+            </div>
+            <h3 className="font-bold text-gray-900 text-lg">Estado Activo</h3>
+            <p className="text-gray-500 text-sm mt-1">Acceso autorizado.</p>
+            <div className="mt-6 w-full">
+              <Link href="/dashboard/student/reservations" className="block w-full py-2 rounded-lg border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-50">
+                Ver mis reservas
+              </Link>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
+
+const QuickAction = ({ href, icon, text }: { href: string, icon: string, text: string }) => (
+  <Link href={href} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors group">
+    <div className="flex items-center gap-3">
+      <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-600 shadow-sm group-hover:text-indigo-600 transition-colors">
+        <i className={`bi ${icon}`}></i>
+      </div>
+      <span className="font-bold text-sm text-gray-700">{text}</span>
+    </div>
+    <i className="bi bi-chevron-right text-gray-400 text-xs"></i>
+  </Link>
+);

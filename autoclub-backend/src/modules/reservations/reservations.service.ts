@@ -6,136 +6,103 @@ import { CreateReservationDto } from './dto/create-reservation.dto';
 export class ReservationsService {
   constructor(private prisma: PrismaService) {}
 
-  // 1. CREAR RESERVA (Con regla de unicidad)
-  async reserve(userId: number, dto: CreateReservationDto) {
-
-    const studentProfile = await this.prisma.student.findUnique({
-      where: { user_id: userId },
+  async create(createReservationDto: CreateReservationDto, userId: number) {
+    const student = await this.prisma.student.findUnique({
+      where: { user_id: userId }
     });
 
-    if (!studentProfile) {
+    if (!student) {
       throw new BadRequestException('El usuario no es un estudiante activo.');
     }
 
+    const classId = createReservationDto.class_id;
+
     return this.prisma.$transaction(async (tx) => {
-    
-      const activeReservation = await tx.reservation.findFirst({
+      const classSession = await tx.class.findUnique({
+        where: { id: classId }
+      });
+
+      if (!classSession) throw new NotFoundException('La clase no existe');
+
+      if (classSession.available_capacity <= 0) {
+        throw new BadRequestException('La clase ya está llena.');
+      }
+
+      const existingBooking = await tx.reservation.findFirst({
         where: {
-          student_id: studentProfile.id,
-          status: 'ACTIVE', 
-        },
-   
-        include: { 
-          class: {
-            include: { subject: true }
-          } 
-        },
+          student_id: student.id,
+          class_id: classId,
+          status: 'ACTIVE'
+        }
       });
 
-      if (activeReservation) {
-     
-        const className = activeReservation.class.subject?.name || 'Clase sin nombre';
-        throw new BadRequestException(
-          `Ya tienes una reserva activa en la clase: "${className}". Debes cancelarla antes de reservar otra.`
-        );
+      if (existingBooking) {
+        throw new BadRequestException('Ya tienes una reserva activa para esta clase.');
       }
 
-      // B. Validar Cupo de la nueva clase
-      const clase = await tx.class.findUnique({
-        where: { id: dto.class_id },
-      });
-
-      if (!clase) throw new NotFoundException('La clase no existe');
-      
-      if (clase.available_capacity <= 0) {
-        throw new BadRequestException('¡Lo sentimos! No hay cupos disponibles en esta clase.');
-      }
-
-      // C. Crear la nueva reserva
       const reservation = await tx.reservation.create({
         data: {
-          class_id: dto.class_id,
-          student_id: studentProfile.id,
-          status: 'ACTIVE',
-        },
+          student_id: student.id,
+          class_id: classId,
+          status: 'ACTIVE'
+        }
       });
 
-      // D. Restar el cupo
       await tx.class.update({
-        where: { id: dto.class_id },
-        data: { available_capacity: { decrement: 1 } },
+        where: { id: classId },
+        data: {
+          available_capacity: { decrement: 1 }
+        }
       });
 
       return reservation;
     });
   }
 
-  // 2. CANCELAR RESERVA (Liberar cupo)
-  async cancel(userId: number, reservationId: number) {
-    const studentProfile = await this.prisma.student.findUnique({
-        where: { user_id: userId },
-    });
+  async findAllByStudent(userId: number) {
+    const student = await this.prisma.student.findUnique({ where: { user_id: userId } });
+    if (!student) return [];
 
-
-    if (!studentProfile) {
-      throw new BadRequestException('El usuario no es un estudiante activo.');
-    }
-
-
-    return this.prisma.$transaction(async (tx) => {
-      // A. Buscar la reserva
-      const reservation = await tx.reservation.findUnique({
-        where: { id: reservationId },
-      });
-
-      if (!reservation) throw new NotFoundException('Reserva no encontrada');
-
-      // B. Verificar que la reserva sea de este estudiante
-      if (reservation.student_id !== studentProfile.id) {
-        throw new BadRequestException('No puedes cancelar una reserva que no es tuya');
-      }
-
-      if (reservation.status === 'CANCELLED') {
-        throw new BadRequestException('Esta reserva ya fue cancelada previamente');
-      }
-
-      // C. Cambiar estado a CANCELLED
-      await tx.reservation.update({
-        where: { id: reservationId },
-        data: { status: 'CANCELLED' },
-      });
-
-      // D. DEVOLVER EL CUPO (Sumar 1)
-      await tx.class.update({
-        where: { id: reservation.class_id },
-        data: { available_capacity: { increment: 1 } },
-      });
-
-      return { message: 'Reserva cancelada exitosamente. Ahora puedes reservar otra clase.' };
+    return this.prisma.reservation.findMany({
+      where: { 
+        student_id: student.id,
+        status: 'ACTIVE' 
+      },
+      include: {
+        class: {
+          include: {
+            subject: true,
+            professor: { include: { user: true } }
+          }
+        }
+      },
+      orderBy: { class: { class_date: 'asc' } }
     });
   }
 
-  // 3. VER MIS RESERVAS (Para saber qué ID cancelar)
-  async findMyReservations(userId: number) {
-    const studentProfile = await this.prisma.student.findUnique({
-        where: { user_id: userId },
-    });
+  async cancel(reservationId: number, userId: number) {
+    const student = await this.prisma.student.findUnique({ where: { user_id: userId } });
+    if (!student) throw new BadRequestException('Estudiante no encontrado');
 
+    return this.prisma.$transaction(async (tx) => {
+      const reservation = await tx.reservation.findFirst({
+        where: { id: reservationId, student_id: student.id }
+      });
 
-    if (!studentProfile) {
-      throw new BadRequestException('No se encontró perfil de estudiante para este usuario.');
-    }
- 
-    
-    return this.prisma.reservation.findMany({
-        where: { student_id: studentProfile.id },
-        
-        include: { 
-          class: {
-            include: { subject: true }
-          } 
-        },
-        orderBy: { created_at: 'desc' }
+      if (!reservation) throw new NotFoundException('Reserva no encontrada');
+      if (reservation.status !== 'ACTIVE') throw new BadRequestException('Esta reserva ya fue cancelada');
+
+      await tx.reservation.update({
+        where: { id: reservationId },
+        data: { status: 'CANCELLED' }
+      });
+
+      await tx.class.update({
+        where: { id: reservation.class_id },
+        data: { available_capacity: { increment: 1 } }
+      });
+
+      return { message: 'Reserva cancelada exitosamente' };
     });
   }
 }

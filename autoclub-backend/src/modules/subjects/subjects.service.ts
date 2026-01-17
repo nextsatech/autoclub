@@ -10,23 +10,59 @@ export class SubjectsService {
     return this.prisma.subject.create({
       data: {
         name: createSubjectDto.name,
-        // Aquí ocurre la magia de conectar con A2, B1, etc.
+        description: createSubjectDto.description,
+        is_practical: createSubjectDto.is_practical || false,
+        
+        
+        module: createSubjectDto.moduleId 
+          ? { connect: { id: createSubjectDto.moduleId } } 
+          : undefined, 
+        // -----------------------
+
         categories: {
-          connect: createSubjectDto.categoryIds.map((id) => ({ id })),
-        },
+          connect: (createSubjectDto.categoryIds || []).map((id) => ({ id }))
+        }
       },
+      include: { categories: true, module: true }
     });
   }
 
+
   async findAll() {
     return this.prisma.subject.findMany({
-      include: { categories: true }, // para ver si es de Moto o Carro
+      include: { categories: true, module: true }, 
       orderBy: { name: 'asc' }
     });
   }
 
-  // Opcional: Eliminar materia
+  // Asegúrate de que el método sea async
   async remove(id: number) {
-    return this.prisma.subject.delete({ where: { id } });
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Buscar las clases asociadas a esta materia
+      const classes = await tx.class.findMany({
+        where: { subject_id: id },
+        select: { id: true }
+      });
+      
+      const classIds = classes.map(c => c.id);
+
+      // 2. Si hay clases, eliminar primero sus dependencias (Reservas)
+      if (classIds.length > 0) {
+        // A. Eliminar Reservas de esas clases
+        await tx.reservation.deleteMany({
+          where: { class_id: { in: classIds } }
+        });
+
+        // B. Eliminar las Clases
+        await tx.class.deleteMany({
+          where: { id: { in: classIds } }
+        });
+      }
+
+      // 3. Ahora sí, eliminar la Materia (ya está libre)
+      return tx.subject.delete({
+        where: { id }
+      });
+    });
   }
 }

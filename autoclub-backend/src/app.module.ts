@@ -8,12 +8,16 @@ import { ReservationsModule } from './modules/reservations/reservations.module';
 import { ProfessorsModule } from './modules/professors/professors.module';
 import { SubjectsModule } from './modules/subjects/subjects.module';
 import { SchedulesModule } from './modules/schedules/schedules.module';
+import { LicenseCategoriesModule } from './modules/license-categories/license-categories.module';
+import { StudentsModule } from './modules/students/students.module';
+import { RolesModule } from './modules/roles/roles.module';
+import { ModulesModule } from './modules/modules/modules.module';
 
 @Module({
   imports: [
     PrismaModule, 
     AuthModule, 
-    ClassesModule, ReservationsModule, ProfessorsModule, SubjectsModule, SchedulesModule
+    ClassesModule, ReservationsModule, ProfessorsModule, SubjectsModule, SchedulesModule, LicenseCategoriesModule, StudentsModule, RolesModule, ModulesModule
   ],
   controllers: [AppController],
   providers: [AppService],
