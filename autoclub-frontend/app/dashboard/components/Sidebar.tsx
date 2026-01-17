@@ -24,7 +24,8 @@ export default function Sidebar() {
 
   const adminMenu = [
     { name: 'Panel General', icon: 'bi-speedometer2', path: '/dashboard' },
-    { name: 'Gestionar Clases', icon: 'bi-calendar-week', path: '/dashboard/admin/classes' },
+    { name: 'Gestionar Clases', icon: 'bi-book-half', path: '/dashboard/admin/classes' },
+    { name: 'Malla Horaria', icon: 'bi-calendar-week', path: '/dashboard/admin/schedules'},
     { name: 'Usuarios', icon: 'bi-people-fill', path: '/dashboard/admin/users' },
     { name: 'Reportes', icon: 'bi-file-earmark-bar-graph', path: '/dashboard/admin/reports' },
   ];

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Request, Delete, Param, ParseIntPipe } from '@nestjs/common'; 
 import { ClassesService } from './classes.service';
 import { CreateClassDto } from './dto/create-class.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -7,10 +7,20 @@ import { AuthGuard } from '@nestjs/passport';
 export class ClassesController {
   constructor(private readonly classesService: ClassesService) {}
 
-  @UseGuards(AuthGuard('jwt')) // <--- ¡CANDADO DE SEGURIDAD!
+  @Get()
+  findAll() {
+    return this.classesService.findAll();
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Post()
   create(@Body() createClassDto: CreateClassDto, @Request() req) {
-    // Aquí podríamos validar si req.user.role === 'ADMIN'
     return this.classesService.create(createClassDto);
+  }
+
+  // Ahora sí funcionará esto:
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.classesService.remove(id);
   }
 }

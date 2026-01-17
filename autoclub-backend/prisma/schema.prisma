@@ -1,5 +1,3 @@
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,10 +7,27 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 1. Gestión de Usuarios y Roles [cite: 9]
+// 1. Configuración del Sistema 
+model LicenseCategory {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique // Ej: A2, B1, C1
+  subjects Subject[] // Relación muchos a muchos (Qué materias ve esta licencia)
+  students Student[]
+}
+
+model Subject {
+  id           Int               @id @default(autoincrement())
+  name         String            @unique // Ej: "Mecánica Básica", "Ética"
+  description  String?
+  is_practical Boolean           @default(false) // Para diferenciar teoría de práctica si es necesario
+  categories   LicenseCategory[] // A qué licencias aplica esta materia
+  classes      Class[]
+}
+
+// 2. Usuarios y Roles
 model Role {
   id          Int     @id @default(autoincrement())
-  name        String  @unique // ADMIN, PROFESSOR, STUDENT 
+  name        String  @unique // ADMIN, PROFESSOR, STUDENT
   description String?
   users       User[]
 }
@@ -28,12 +43,13 @@ model User {
   professor     Professor?
 }
 
-// 2. Perfiles específicos
 model Student {
-  id           Int           @id @default(autoincrement())
-  user_id      Int           @unique
-  user         User          @relation(fields: [user_id], references: [id])
-  reservations Reservation[]
+  id                  Int              @id @default(autoincrement())
+  user_id             Int              @unique
+  user                User             @relation(fields: [user_id], references: [id])
+  license_category_id Int? // El estudiante pertenece a una categoría (A2, B1...)
+  license_category    LicenseCategory? @relation(fields: [license_category_id], references: [id])
+  reservations        Reservation[]
 }
 
 model Professor {
@@ -43,19 +59,36 @@ model Professor {
   classes Class[]
 }
 
-// 3. Malla Horaria y Control de Cupos 
+model WeeklySchedule {
+  id         Int      @id @default(autoincrement())
+  name       String // Ej: "Semana 2 - Enero 2026"
+  start_date DateTime // 2026-01-05
+  end_date   DateTime // 2026-01-11
+  is_active  Boolean  @default(false) // <-- Para ocultarla hasta que esté lista
+  classes    Class[] // Relación: Una semana tiene muchas clases
+}
+
+// 3. Programación de Clases 
 model Class {
-  id                 Int           @id @default(autoincrement())
-  title              String?
-  class_date         DateTime      @db.Date
-  start_time         DateTime      @db.Time
-  end_time           DateTime      @db.Time
-  max_capacity       Int // Cupo máximo [cite: 19]
-  available_capacity Int // Control de disponibilidad en tiempo real 
-  professor_id       Int
-  professor          Professor     @relation(fields: [professor_id], references: [id])
+  id         Int     @id @default(autoincrement())
+  // title           String?  <-- ELIMINADO: Ya no escribimos títulos a mano
+  subject_id Int
+  subject    Subject @relation(fields: [subject_id], references: [id])
+
+  class_date DateTime @db.Date
+  start_time DateTime @db.Time
+  end_time   DateTime @db.Time
+
+  max_capacity       Int
+  available_capacity Int
+
+  professor_id Int
+  professor    Professor @relation(fields: [professor_id], references: [id])
+
   reservations       Reservation[]
-  status             String        @default("OPEN")
+  status             String          @default("OPEN")
+  weekly_schedule_id Int?
+  weekly_schedule    WeeklySchedule? @relation(fields: [weekly_schedule_id], references: [id])
 }
 
 model Reservation {

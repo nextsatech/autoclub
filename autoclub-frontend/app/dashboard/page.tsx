@@ -102,7 +102,7 @@ export default function DashboardPage() {
         </div>
         <Link href="/dashboard/booking" className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">
           <i className="bi bi-plus-lg mr-2"></i>
-          Nueva Reserva
+          Nuevo Registro
         </Link>
       </div>
 

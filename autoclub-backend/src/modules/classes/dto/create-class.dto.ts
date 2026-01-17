@@ -1,35 +1,36 @@
-import { IsDateString, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger'; // <--- Importar
+import { IsNotEmpty, IsDateString, IsNumber, Min, IsOptional } from 'class-validator';
 
 export class CreateClassDto {
-  @ApiProperty({ example: 'Clase de Reversa', description: 'Título de la sesión' })
-  @IsString()
-  @IsOptional()
-  title?: string;
+  // ELIMINADO: @IsString() title: string;  <-- Ya no usamos título manual
 
-  @ApiProperty({ example: '2026-02-15T00:00:00Z' })
-  @IsDateString()
   @IsNotEmpty()
+  @IsNumber()
+  subject_id: number; 
+
+  @IsOptional()
+  @IsNumber()
+  weekly_schedule_id?: number;
+
+  @IsNotEmpty()
+  @IsDateString()
   class_date: string;
 
-  @ApiProperty({ example: '2026-02-15T08:00:00Z' })
-  @IsDateString()
   @IsNotEmpty()
+  @IsDateString()
   start_time: string;
 
-  @ApiProperty({ example: '2026-02-15T10:00:00Z' })
-  @IsDateString()
   @IsNotEmpty()
+  @IsDateString()
   end_time: string;
 
-  @ApiProperty({ example: 10, description: 'Cupo máximo de estudiantes' })
-  @IsInt()
-  @Min(1)
   @IsNotEmpty()
+  @IsNumber()
+  @Min(1)
   max_capacity: number;
 
-  @ApiProperty({ example: 1 })
-  @IsInt()
   @IsNotEmpty()
+  @IsNumber()
   professor_id: number;
+
+  
 }

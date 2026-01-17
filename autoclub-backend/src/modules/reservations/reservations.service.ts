@@ -24,12 +24,19 @@ export class ReservationsService {
           student_id: studentProfile.id,
           status: 'ACTIVE', 
         },
-        include: { class: true },
+   
+        include: { 
+          class: {
+            include: { subject: true }
+          } 
+        },
       });
 
       if (activeReservation) {
+     
+        const className = activeReservation.class.subject?.name || 'Clase sin nombre';
         throw new BadRequestException(
-          `Ya tienes una reserva activa en la clase: "${activeReservation.class.title || 'Sin título'}". Debes cancelarla antes de reservar otra.`
+          `Ya tienes una reserva activa en la clase: "${className}". Debes cancelarla antes de reservar otra.`
         );
       }
 
@@ -122,7 +129,12 @@ export class ReservationsService {
     
     return this.prisma.reservation.findMany({
         where: { student_id: studentProfile.id },
-        include: { class: true },
+        
+        include: { 
+          class: {
+            include: { subject: true }
+          } 
+        },
         orderBy: { created_at: 'desc' }
     });
   }
