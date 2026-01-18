@@ -45,7 +45,7 @@ Aquí he organizado tus requerimientos pendientes. ¿Por cuál te gustaría empe
 
         Integrar Anime.js o Framer Motion para animaciones de entrada (ej: logo apareciendo, formulario deslizándose, fondo interactivo).
 
-2. 🎓 Vista Académica del Estudiante (Malla Curricular)
+2. 🎓 Vista Académica del Estudiante (Malla Curricular)(Realizado)
 
     Acordeón de Módulos: Crear una nueva vista donde el estudiante vea la lista de Módulos (ej: "Módulo Teórico").
 
@@ -53,7 +53,7 @@ Aquí he organizado tus requerimientos pendientes. ¿Por cuál te gustaría empe
 
     Detalle de Licencia: Cada materia debe tener una etiqueta (badge) indicando a qué licencia pertenece (A2, B1, etc.).
 
-3. 🛡️ Super-Poderes de Administrador
+3. 🛡️ Super-Poderes de Administrador(Realizado)
 
     Eliminación Total: Asegurar que el Admin pueda eliminar a cualquier usuario sin restricciones (incluso si es Profesor u otro Admin), manejando las relaciones en cascada (ej: ¿qué pasa con las clases de un profesor si lo borro?).
 
