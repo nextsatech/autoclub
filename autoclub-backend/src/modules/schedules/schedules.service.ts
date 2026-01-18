@@ -33,19 +33,14 @@ export class SchedulesService {
     });
   }
 
-  async findOne(id: string) {
+  async findOne(id: number) { 
     return this.prisma.weeklySchedule.findUnique({
-      where: { id },
+      where: { id }, // Ahora 'id' es number, y Prisma estará feliz
       include: {
         classes: {
           include: {
-            // AQUÍ ESTABA EL FALLO: Faltaba incluir las categorías de la materia
-            subject: { 
-              include: { categories: true } // <--- AGREGA ESTA LÍNEA CRÍTICA
-            },
-            professor: {
-              include: { user: true }
-            }
+            subject: { include: { categories: true } },
+            professor: { include: { user: true } }
           }
         }
       }

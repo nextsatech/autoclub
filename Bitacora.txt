@@ -1,0 +1,82 @@
+Estado Actual del Sistema (Lo que ya funciona)
+
+Tienes un sistema SaaS Académico (LMS) funcional con arquitectura robusta:
+
+1. Backend (NestJS + Prisma + PostgreSQL):
+
+    Seguridad: Autenticación JWT, Encriptación de contraseñas, y Guardias de Roles (admin, student, professor).
+
+    Modelado de Datos: Relaciones complejas entre Usuarios, Licencias, Materias, Módulos, Clases y Reservas.
+
+    Lógica de Negocio:
+
+        Validación de fechas en horarios.
+
+        Control de cupos (capacidad) en tiempo real.
+
+        Filtro estricto de seguridad: El backend envía las categorías de las materias y el frontend bloquea a estudiantes sin licencia válida.
+
+2. Frontend (Next.js + Tailwind):
+
+    Roles:
+
+        Admin: Panel completo. Puede crear Semanas, gestionar Usuarios, crear Módulos y Materias vinculadas a Licencias (A1, A2, B1, etc.).
+
+        Estudiante: Dashboard personalizado. Ve su progreso (barra lateral) y solo puede reservar clases que coinciden con su licencia y día de la semana.
+
+    Componentes Clave:
+
+        Sidebar dinámico (detecta rol).
+
+        Header dinámico (muestra nombre y rol).
+
+        Calendario semanal interactivo con barras de ocupación.
+
+📝 Lo que falta por hacer (Tu Hoja de Ruta)
+
+Aquí he organizado tus requerimientos pendientes. ¿Por cuál te gustaría empezar?
+1. 🎨 UI/UX y "Factor Wow" (Visual)
+
+    Nueva Paleta de Colores: Migrar de los grises/azules actuales a la paleta "Dark Mode" o "Tech" que te gustaba (tonos oscuros, neones sutiles, contrastes altos).
+
+    Login de Alto Impacto:
+
+        Rediseñar la página de Login.
+
+        Integrar Anime.js o Framer Motion para animaciones de entrada (ej: logo apareciendo, formulario deslizándose, fondo interactivo).
+
+2. 🎓 Vista Académica del Estudiante (Malla Curricular)
+
+    Acordeón de Módulos: Crear una nueva vista donde el estudiante vea la lista de Módulos (ej: "Módulo Teórico").
+
+    Expansión: Al hacer click, se despliega y muestra las materias de ese módulo.
+
+    Detalle de Licencia: Cada materia debe tener una etiqueta (badge) indicando a qué licencia pertenece (A2, B1, etc.).
+
+3. 🛡️ Super-Poderes de Administrador
+
+    Eliminación Total: Asegurar que el Admin pueda eliminar a cualquier usuario sin restricciones (incluso si es Profesor u otro Admin), manejando las relaciones en cascada (ej: ¿qué pasa con las clases de un profesor si lo borro?).
+
+4. ✅ Control de Progreso (Historial)
+
+    Validación "Ya Cursada":
+
+        El sistema debe saber si un estudiante ya asistió a una clase de "Mecánica Básica".
+
+        Visual: En el horario, esa clase debe aparecer marcada (ej: "✅ Aprobada") o bloqueada para no repetirla innecesariamente.
+
+        Lógica: Requiere consultar el historial de reservas pasadas del estudiante.
+
+💡 Mi recomendación para el siguiente paso
+
+Yo sugeriría ir en este orden para mantener la estabilidad:
+
+    Hacer el punto 3 (Eliminación de usuarios): Es rápido y backend puro.
+
+    Hacer el punto 2 (Vista de Módulos del Estudiante): Es frontend y estructura visual.
+
+    Hacer el punto 4 (Validación de "Ya cursada"): Requiere lógica mixta.
+
+    Dejar el punto 1 (Diseño/Anime.js) para el final: Así "maquillas" el sistema cuando toda la lógica ya esté perfecta.
+
+    y adicional proteccion de rutas

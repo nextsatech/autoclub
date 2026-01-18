@@ -51,7 +51,7 @@ export default function Sidebar() {
             <SectionTitle>Gestión Académica</SectionTitle>
             <NavLink href="/dashboard" icon="bi-grid-fill" label="Panel Principal" active={isActive('/dashboard')} activeClass={activeClass} inactiveClass={inactiveClass} />
             <NavLink href="/dashboard/admin/schedules" icon="bi-calendar-week" label="Programación Semanal" active={isActive('/dashboard/admin/schedules')} activeClass={activeClass} inactiveClass={inactiveClass} />
-            <NavLink href="/dashboard/admin/classes" icon="bi-easel2-fill" label="Clases Sueltas" active={isActive('/dashboard/admin/classes')} activeClass={activeClass} inactiveClass={inactiveClass} />
+            <NavLink href="/dashboard/admin/classes" icon="bi-easel2-fill" label="Crear Clases" active={isActive('/dashboard/admin/classes')} activeClass={activeClass} inactiveClass={inactiveClass} />
             
             <SectionTitle>Configuración</SectionTitle>
             <NavLink href="/dashboard/admin/subjects" icon="bi-book-half" label="Materias" active={isActive('/dashboard/admin/subjects')} activeClass={activeClass} inactiveClass={inactiveClass} />
@@ -65,6 +65,14 @@ export default function Sidebar() {
           <>
             <SectionTitle>Mi Aprendizaje</SectionTitle>
             <NavLink href="/dashboard" icon="bi-grid-fill" label="Inicio" active={isActive('/dashboard')} activeClass={activeClass} inactiveClass={inactiveClass} />
+            <NavLink 
+  href="/dashboard/student/curriculum" 
+  icon="bi-journal-richtext" 
+  label="Malla Curricular" 
+  active={isActive('/dashboard/student/curriculum')} 
+  activeClass={activeClass} 
+  inactiveClass={inactiveClass} 
+/>
             <NavLink href="/dashboard/student/schedule" icon="bi-calendar-plus" label="Reservar Clases" active={isActive('/dashboard/student/schedule')} activeClass={activeClass} inactiveClass={inactiveClass} />
             <NavLink href="/dashboard/student/reservations" icon="bi-ticket-detailed" label="Mis Reservas" active={isActive('/dashboard/student/reservations')} activeClass={activeClass} inactiveClass={inactiveClass} />
           </>

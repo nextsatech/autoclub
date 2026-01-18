@@ -12,12 +12,13 @@ import { LicenseCategoriesModule } from './modules/license-categories/license-ca
 import { StudentsModule } from './modules/students/students.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { ModulesModule } from './modules/modules/modules.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
     PrismaModule, 
     AuthModule, 
-    ClassesModule, ReservationsModule, ProfessorsModule, SubjectsModule, SchedulesModule, LicenseCategoriesModule, StudentsModule, RolesModule, ModulesModule
+    ClassesModule, ReservationsModule, ProfessorsModule, SubjectsModule, SchedulesModule, LicenseCategoriesModule, StudentsModule, RolesModule, ModulesModule, UsersModule
   ],
   controllers: [AppController],
   providers: [AppService],
