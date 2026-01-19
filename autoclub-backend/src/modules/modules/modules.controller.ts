@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, ParseIntPipe } from '@nestjs/common';
+import { Controller, Patch, Get, Post, Body, Param, Delete, ParseIntPipe } from '@nestjs/common';
 import { ModulesService } from './modules.service';
 
 
@@ -14,6 +14,11 @@ export class ModulesController {
   @Get()
   findAll() {
     return this.modulesService.findAll();
+  }
+
+  @Patch(':id')
+  update(@Param('id', ParseIntPipe) id: number, @Body('name') name: string) {
+    return this.modulesService.update(id, { name });
   }
 
   @Delete(':id')

@@ -35,7 +35,28 @@ export class SubjectsService {
     });
   }
 
-  // Asegúrate de que el método sea async
+  
+  async update(id: number, updateData: any) {
+    const { categoryIds, moduleId, ...rest } = updateData;
+
+    return this.prisma.subject.update({
+      where: { id },
+      data: {
+        ...rest,
+        // Actualizar Módulo (si es null, lo desconecta)
+        module: moduleId 
+          ? { connect: { id: Number(moduleId) } } 
+          : { disconnect: true },
+        
+        // Actualizar Categorías (Reemplaza las existentes con 'set')
+        categories: categoryIds 
+          ? { set: categoryIds.map((cid: number) => ({ id: cid })) } 
+          : undefined
+      },
+      include: { categories: true, module: true }
+    });
+  }
+  
   async remove(id: number) {
     return this.prisma.$transaction(async (tx) => {
       // 1. Buscar las clases asociadas a esta materia

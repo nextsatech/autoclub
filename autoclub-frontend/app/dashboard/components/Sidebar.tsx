@@ -11,8 +11,9 @@ export default function Sidebar() {
   // Estados para datos del usuario
   const [userRole, setUserRole] = useState<string>('');
   const [userEmail, setUserEmail] = useState<string>('');
-  // 1. NUEVO ESTADO PARA LA LICENCIA
-  const [userLicense, setUserLicense] = useState<string>('');
+  
+  // 1. CAMBIO IMPORTANTE: Ahora guardamos un ARRAY de licencias, no un solo string
+  const [userLicenses, setUserLicenses] = useState<string[]>([]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -20,8 +21,17 @@ export default function Sidebar() {
       const user = JSON.parse(storedUser);
       setUserRole(user.role?.name || '');
       setUserEmail(user.email || ''); 
-      // 2. CAPTURAR LA LICENCIA (Asegúrate que tu backend envíe 'licenseType' o ajusta el nombre aquí)
-      setUserLicense(user.licenseType || 'B1'); 
+
+      // 2. CORRECCIÓN: Leemos las licencias desde donde realmente vienen
+      // El backend devuelve: user.student.license_categories = [{name: 'A2'}, {name: 'B1'}]
+      if (user.student && user.student.license_categories && user.student.license_categories.length > 0) {
+        // Extraemos solo los nombres (ej: ['A2', 'B1'])
+        const licenses = user.student.license_categories.map((l: any) => l.name);
+        setUserLicenses(licenses);
+      } else {
+        // Si no tiene licencias, lo dejamos vacío o ponemos una por defecto visual si prefieres
+        setUserLicenses(['Sin Licencia']); 
+      }
     }
   }, []);
 
@@ -37,7 +47,7 @@ export default function Sidebar() {
   const getRoleLabel = (role: string) => {
     switch(role) {
       case 'admin': return 'Administrador';
-      case 'student': return 'Estudiante'; // Un toque más pro
+      case 'student': return 'Estudiante'; 
       case 'professor': return 'Instructor';
       default: return 'Usuario';
     }
@@ -45,10 +55,13 @@ export default function Sidebar() {
 
   // --- HELPER: COLOR DE LICENCIA ---
   const getLicenseStyle = (type: string) => {
+    if (!type) return 'bg-zinc-800 text-zinc-300 border-zinc-700';
+    
     // Si es Moto (A1, A2) -> Amarillo
     if (type.toUpperCase().includes('A')) return 'bg-yellow-500 text-black border-yellow-400 shadow-[0_0_10px_rgba(234,179,8,0.4)]';
     // Si es Carro (B1, B2, C1) -> Rojo AutoClub
     if (type.toUpperCase().includes('B') || type.toUpperCase().includes('C')) return 'bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(220,38,38,0.4)]';
+    
     // Default
     return 'bg-zinc-800 text-zinc-300 border-zinc-700';
   };
@@ -113,31 +126,30 @@ export default function Sidebar() {
       <div className="p-4 border-t border-zinc-800 bg-zinc-900/30">
         
         <div className="mb-4 px-2">
-          {/* TÍTULO DEL ROL */}
           <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 flex items-center justify-between">
             {getRoleLabel(userRole)}
-            {/* Pequeño indicador online */}
             <span className="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_5px_#22c55e]"></span>
           </p>
 
-          {/* 3. LÓGICA DE VISUALIZACIÓN: Si es estudiante muestra LICENCIA, si no EMAIL */}
+          {/* LÓGICA DE VISUALIZACIÓN MULTI-LICENCIA */}
           {userRole === 'student' ? (
-             <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-zinc-400">Categoría Activa:</span>
+             <div className="flex flex-col gap-2">
+                <span className="text-[10px] text-zinc-400">Licencias Activas:</span>
                 
-                {/* DISEÑO TIPO PLACA/CREDENCIAL */}
-                <div className={`flex items-center justify-between px-3 py-2 rounded-lg border ${getLicenseStyle(userLicense)} transition-all hover:scale-[1.02]`}>
-                  <div className="flex items-center gap-2">
-                    <i className="bi bi-person-vcard-fill text-lg opacity-80"></i>
-                    <span className="font-mono text-lg font-black tracking-wider leading-none">
-                      {userLicense}
-                    </span>
+                {/* 3. AHORA MAPEAMOS EL ARRAY PARA MOSTRAR TODAS LAS LICENCIAS */}
+                {userLicenses.map((license, index) => (
+                  <div key={index} className={`flex items-center justify-between px-3 py-2 rounded-lg border ${getLicenseStyle(license)} transition-all hover:scale-[1.02]`}>
+                    <div className="flex items-center gap-2">
+                      <i className="bi bi-person-vcard-fill text-lg opacity-80"></i>
+                      <span className="font-mono text-lg font-black tracking-wider leading-none">
+                        {license}
+                      </span>
+                    </div>
+                    <i className="bi bi-shield-check opacity-70"></i>
                   </div>
-                  <i className="bi bi-shield-check opacity-70"></i>
-                </div>
+                ))}
              </div>
           ) : (
-             /* Para Admin e Instructores mostramos el email normal */
              <p className="text-sm font-bold text-white truncate opacity-90" title={userEmail}>
                {userEmail || 'Cargando...'}
              </p>

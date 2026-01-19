@@ -4,6 +4,7 @@ import { CreateSubjectDto } from './dto/create-subject.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../auth/roles.guard'; 
 import { Roles } from '../auth/roles.decorator'; 
+import { UpdateSubjectDto } from './dto/update-subject.dto';
 
 @Controller('subjects')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -20,6 +21,12 @@ export class SubjectsController {
   // @Roles('admin', 'student') <--que todos vean, no pongas nada
   findAll() {
     return this.subjectsService.findAll();
+  }
+
+  @Patch(':id')
+  @Roles('admin')
+  update(@Param('id') id: string, @Body() updateSubjectDto: any) {
+    return this.subjectsService.update(+id, updateSubjectDto);
   }
 
   @Delete(':id')

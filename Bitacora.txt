@@ -84,4 +84,10 @@ proteger rutas, y que marque si ya vio la materia o no solo
 al dia siguiente de la fecha en que se iba a ver la clase de la materia
 en caso de que no fue a la clase que marque que no y le habilite verla de nuevo
 
-* Arreglar que muestre la o las licencias reales que tiene el estudiante
+* Arreglar que muestre la o las licencias reales que tiene el estudiante(Realizado)
+
+Falta: Proteger las rutas para que no se vea en la url como se llaman las carptes.
+
+ahora, quiero de parte del usuario que cuando el registre una materia de acuerdo 
+a la fecha de la materia si se paso de esa fecha le pregunte como si la curso o no y en caso de que no le habilite para cursarla sino, que por defecto sea si, siempre y cuando ya la matriculo, y una vez escogida no debe mostrale para 
+escogerla mas o qu ele diga que ya la curso en caso intente escogerla 
