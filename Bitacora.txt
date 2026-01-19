@@ -34,7 +34,7 @@ Tienes un sistema SaaS Académico (LMS) funcional con arquitectura robusta:
 
 📝 Lo que falta por hacer (Tu Hoja de Ruta)
 
-Aquí he organizado tus requerimientos pendientes. ¿Por cuál te gustaría empezar?
+Aquí he organizado tus requerimientos pendientes. ¿Por cuál te gustaría empezar?(Realizado)
 1. 🎨 UI/UX y "Factor Wow" (Visual)
 
     Nueva Paleta de Colores: Migrar de los grises/azules actuales a la paleta "Dark Mode" o "Tech" que te gustaba (tonos oscuros, neones sutiles, contrastes altos).
@@ -79,4 +79,9 @@ Yo sugeriría ir en este orden para mantener la estabilidad:
 
     Dejar el punto 1 (Diseño/Anime.js) para el final: Así "maquillas" el sistema cuando toda la lógica ya esté perfecta.
 
-    y adicional proteccion de rutas
+FALTA POR Hacer
+proteger rutas, y que marque si ya vio la materia o no solo 
+al dia siguiente de la fecha en que se iba a ver la clase de la materia
+en caso de que no fue a la clase que marque que no y le habilite verla de nuevo
+
+* Arreglar que muestre la o las licencias reales que tiene el estudiante

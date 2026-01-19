@@ -11,13 +11,17 @@ export default function Sidebar() {
   // Estados para datos del usuario
   const [userRole, setUserRole] = useState<string>('');
   const [userEmail, setUserEmail] = useState<string>('');
+  // 1. NUEVO ESTADO PARA LA LICENCIA
+  const [userLicense, setUserLicense] = useState<string>('');
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       const user = JSON.parse(storedUser);
       setUserRole(user.role?.name || '');
-      setUserEmail(user.email || ''); // Capturamos el email
+      setUserEmail(user.email || ''); 
+      // 2. CAPTURAR LA LICENCIA (Asegúrate que tu backend envíe 'licenseType' o ajusta el nombre aquí)
+      setUserLicense(user.licenseType || 'B1'); 
     }
   }, []);
 
@@ -33,10 +37,20 @@ export default function Sidebar() {
   const getRoleLabel = (role: string) => {
     switch(role) {
       case 'admin': return 'Administrador';
-      case 'student': return 'Estudiante';
+      case 'student': return 'Estudiante'; // Un toque más pro
       case 'professor': return 'Instructor';
       default: return 'Usuario';
     }
+  };
+
+  // --- HELPER: COLOR DE LICENCIA ---
+  const getLicenseStyle = (type: string) => {
+    // Si es Moto (A1, A2) -> Amarillo
+    if (type.toUpperCase().includes('A')) return 'bg-yellow-500 text-black border-yellow-400 shadow-[0_0_10px_rgba(234,179,8,0.4)]';
+    // Si es Carro (B1, B2, C1) -> Rojo AutoClub
+    if (type.toUpperCase().includes('B') || type.toUpperCase().includes('C')) return 'bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(220,38,38,0.4)]';
+    // Default
+    return 'bg-zinc-800 text-zinc-300 border-zinc-700';
   };
 
   // --- ESTILOS OSCUROS ---
@@ -65,16 +79,9 @@ export default function Sidebar() {
           <>
             <SectionTitle>Mi Aprendizaje</SectionTitle>
             <NavLink href="/dashboard" icon="bi-grid-fill" label="Inicio" active={isActive('/dashboard')} activeClass={activeClass} inactiveClass={inactiveClass} />
-            <NavLink 
-  href="/dashboard/student/curriculum" 
-  icon="bi-journal-richtext" 
-  label="Malla Curricular" 
-  active={isActive('/dashboard/student/curriculum')} 
-  activeClass={activeClass} 
-  inactiveClass={inactiveClass} 
-/>
-            <NavLink href="/dashboard/student/schedule" icon="bi-calendar-plus" label="Reservar Clases" active={isActive('/dashboard/student/schedule')} activeClass={activeClass} inactiveClass={inactiveClass} />
-            <NavLink href="/dashboard/student/reservations" icon="bi-ticket-detailed" label="Mis Reservas" active={isActive('/dashboard/student/reservations')} activeClass={activeClass} inactiveClass={inactiveClass} />
+            <NavLink href="/dashboard/student/curriculum" icon="bi-journal-richtext" label="Malla Curricular" active={isActive('/dashboard/student/curriculum')} activeClass={activeClass} inactiveClass={inactiveClass} />
+            <NavLink href="/dashboard/student/schedule" icon="bi-calendar-plus" label="Registrar Clases" active={isActive('/dashboard/student/schedule')} activeClass={activeClass} inactiveClass={inactiveClass} />
+            <NavLink href="/dashboard/student/reservations" icon="bi-ticket-detailed" label="Mis Registros" active={isActive('/dashboard/student/reservations')} activeClass={activeClass} inactiveClass={inactiveClass} />
           </>
         );
       case 'professor':
@@ -90,7 +97,7 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-64 bg-zinc-950 border-r border-zinc-800 flex flex-col h-full fixed left-0 top-0 bottom-0 z-20 text-zinc-100">
+    <aside className="w-64 bg-zinc-950 border-r border-zinc-800 flex flex-col h-full fixed left-0 top-0 bottom-0 z-20 text-zinc-100 font-sans">
       <div className="p-6 flex items-center gap-3 border-b border-zinc-800/50">
         <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-indigo-500/20">
           <i className="bi bi-car-front-fill"></i>
@@ -103,21 +110,43 @@ export default function Sidebar() {
       </nav>
 
       {/* FOOTER CON INFO DE USUARIO */}
-      <div className="p-4 border-t border-zinc-800 bg-zinc-900/50">
+      <div className="p-4 border-t border-zinc-800 bg-zinc-900/30">
         
         <div className="mb-4 px-2">
-          {/* Rol formateado (ADMINISTRADOR, ESTUDIANTE) */}
-          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">
+          {/* TÍTULO DEL ROL */}
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 flex items-center justify-between">
             {getRoleLabel(userRole)}
+            {/* Pequeño indicador online */}
+            <span className="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_5px_#22c55e]"></span>
           </p>
-          {/* Email del usuario */}
-          <p className="text-sm font-bold text-white truncate" title={userEmail}>
-            {userEmail || 'Cargando...'}
-          </p>
+
+          {/* 3. LÓGICA DE VISUALIZACIÓN: Si es estudiante muestra LICENCIA, si no EMAIL */}
+          {userRole === 'student' ? (
+             <div className="flex flex-col gap-1">
+                <span className="text-[10px] text-zinc-400">Categoría Activa:</span>
+                
+                {/* DISEÑO TIPO PLACA/CREDENCIAL */}
+                <div className={`flex items-center justify-between px-3 py-2 rounded-lg border ${getLicenseStyle(userLicense)} transition-all hover:scale-[1.02]`}>
+                  <div className="flex items-center gap-2">
+                    <i className="bi bi-person-vcard-fill text-lg opacity-80"></i>
+                    <span className="font-mono text-lg font-black tracking-wider leading-none">
+                      {userLicense}
+                    </span>
+                  </div>
+                  <i className="bi bi-shield-check opacity-70"></i>
+                </div>
+             </div>
+          ) : (
+             /* Para Admin e Instructores mostramos el email normal */
+             <p className="text-sm font-bold text-white truncate opacity-90" title={userEmail}>
+               {userEmail || 'Cargando...'}
+             </p>
+          )}
+
         </div>
 
-        <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-zinc-400 hover:text-red-400 hover:bg-red-950/30 rounded-xl transition-all">
-          <i className="bi bi-box-arrow-right text-lg"></i>
+        <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-xl transition-all border border-transparent hover:border-zinc-700">
+          <i className="bi bi-box-arrow-right text-base"></i>
           Cerrar Sesión
         </button>
       </div>

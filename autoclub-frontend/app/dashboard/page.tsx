@@ -83,7 +83,7 @@ export default function DashboardPage() {
               <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider backdrop-blur-md">
                 Tu progreso
               </span>
-              <h2 className="text-3xl font-black mt-4 mb-2">¿Listo para tu próxima práctica?</h2>
+              <h2 className="text-3xl font-black mt-4 mb-2">¿Listo para tu próxima clase?</h2>
               <p className="text-indigo-100 mb-8 max-w-md">
                 Recuerda completar tus horas prácticas. Revisa la disponibilidad de esta semana.
               </p>
