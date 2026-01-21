@@ -112,4 +112,5 @@ model Reservation {
   class_id   Int
   class      Class    @relation(fields: [class_id], references: [id])
   created_at DateTime @default(now())
+  attendance Boolean? // null = Sin confirmar, true = Asistió, false = No asistió (Falla)
 }

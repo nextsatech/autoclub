@@ -11,14 +11,22 @@ import { SchedulesModule } from './modules/schedules/schedules.module';
 import { LicenseCategoriesModule } from './modules/license-categories/license-categories.module';
 import { StudentsModule } from './modules/students/students.module';
 import { RolesModule } from './modules/roles/roles.module';
-import { ModulesModule } from './modules/modules/modules.module';
 import { UsersModule } from './modules/users/users.module';
+
 
 @Module({
   imports: [
     PrismaModule, 
     AuthModule, 
-    ClassesModule, ReservationsModule, ProfessorsModule, SubjectsModule, SchedulesModule, LicenseCategoriesModule, StudentsModule, RolesModule, ModulesModule, UsersModule
+    ClassesModule, 
+    ReservationsModule, 
+    ProfessorsModule, 
+    SubjectsModule, 
+    SchedulesModule, 
+    LicenseCategoriesModule, 
+    StudentsModule, 
+    RolesModule, 
+    UsersModule
   ],
   controllers: [AppController],
   providers: [AppService],

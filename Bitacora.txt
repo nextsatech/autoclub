@@ -89,5 +89,18 @@ en caso de que no fue a la clase que marque que no y le habilite verla de nuevo
 Falta: Proteger las rutas para que no se vea en la url como se llaman las carptes.
 
 ahora, quiero de parte del usuario que cuando el registre una materia de acuerdo 
-a la fecha de la materia si se paso de esa fecha le pregunte como si la curso o no y en caso de que no le habilite para cursarla sino, que por defecto sea si, siempre y cuando ya la matriculo, y una vez escogida no debe mostrale para 
+a la fecha de la materia si se paso de esa fecha le permita escoger si dio o no la clase,  que por defecto sea si, siempre y cuando ya la matriculo, y una vez escogida no debe mostrale para 
 escogerla mas o qu ele diga que ya la curso en caso intente escogerla 
+
+*una manera en la que se pueda reutilizar las clases para que no sea una por 
+cada fecha tal vez que sean globales y solo ponerles horas
+
+
+que cuando vayan a escoger clases los fines de semana debe mandar un mensaje al admin y 
+este lo registre manualmente o habilite algo
+
+
+hacer las consultas transaccionales para que sea mas exacto en la escogencia
+
+
+Ventana de mensajes de confirmacion ya que asi como lo muestra o muestra en mobil

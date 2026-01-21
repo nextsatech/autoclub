@@ -3,12 +3,15 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function Header() {
+interface HeaderProps {
+  onMenuClick: () => void; // Nueva prop para recibir la acción de click
+}
+
+export default function Header({ onMenuClick }: HeaderProps) {
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
 
   useEffect(() => {
-    // Leer usuario real del localStorage
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
@@ -31,24 +34,34 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 sticky top-0 z-10">
-      {/* Lado Izquierdo (Título o Breadcrumbs) */}
-      <div className="text-sm font-medium text-gray-500">
-        Panel de Control
+    <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 md:px-6 sticky top-0 z-10 shadow-sm md:shadow-none">
+      
+      <div className="flex items-center gap-4">
+        {/* --- BOTÓN HAMBURGUESA (Visible solo en móvil 'md:hidden') --- */}
+        <button 
+          onClick={onMenuClick}
+          className="md:hidden text-gray-600 hover:text-black focus:outline-none active:scale-95 transition-transform"
+        >
+          <i className="bi bi-list text-3xl"></i>
+        </button>
+
+        {/* Título o Breadcrumb */}
+        <div className="text-sm font-medium text-gray-500">
+          Panel de Control
+        </div>
       </div>
 
       {/* Lado Derecho (Usuario) */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 md:gap-4">
         <button className="relative p-2 text-gray-400 hover:text-gray-600 transition-colors">
           <i className="bi bi-bell-fill"></i>
           <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
         </button>
         
-        <div className="h-8 w-px bg-gray-200 mx-2"></div>
+        <div className="h-8 w-px bg-gray-200 mx-2 hidden md:block"></div>
 
         <div className="flex items-center gap-3">
           <div className="text-right hidden md:block">
-            {/* AQUÍ ESTABA EL ERROR: Antes decía texto fijo, ahora usa variables */}
             <p className="text-sm font-bold text-gray-900 leading-none">
               {user?.full_name || 'Cargando...'}
             </p>

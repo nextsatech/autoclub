@@ -132,7 +132,7 @@ export default function ClassDetailModal({ cls, onClose, onReserve }: ClassDetai
               <span>Lista de Espera (Lleno)</span>
             ) : (
               <> 
-                <span>Confirmar Reserva</span> 
+                <span>Confirmar Registro</span> 
                 <i className="bi bi-arrow-right"></i>
               </>
             )}

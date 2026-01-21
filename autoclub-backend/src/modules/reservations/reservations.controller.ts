@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Param, ParseIntPipe, Post, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ReservationsService } from './reservations.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('reservations')
 @UseGuards(AuthGuard('jwt'))
@@ -24,5 +25,15 @@ export class ReservationsController {
   cancel(@Param('id', ParseIntPipe) id: number, @Request() req) {
     // Solución error 3 y 4: Un solo método para cancelar
     return this.reservationsService.cancel(id, req.user.userId);
+  }
+
+  @Patch(':id/attendance')
+  @Roles('student')
+  markAttendance(
+    @Param('id') id: string,
+    @Body('attended') attended: boolean,
+    @Request() req,
+  ) {
+    return this.reservationsService.markAttendance(+id, req.user.studentId, attended);
   }
 }
