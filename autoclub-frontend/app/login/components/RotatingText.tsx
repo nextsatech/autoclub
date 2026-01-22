@@ -1,7 +1,21 @@
 'use client';
 
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react';
-import { motion, AnimatePresence, Transition, VariantLabels, Target, TargetAndTransition } from 'framer-motion';
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useState
+} from 'react';
+import {
+  motion,
+  AnimatePresence,
+  Transition,
+  VariantLabels,
+  Target,
+  TargetAndTransition
+} from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import './RotatingText.css';
@@ -66,16 +80,27 @@ const RotatingText = forwardRef<RotatingTextRef, RotatingTextProps>((props, ref)
 
   const [currentTextIndex, setCurrentTextIndex] = useState<number>(0);
 
+  // ✅ FIX TypeScript para Intl.Segmenter
   const splitIntoCharacters = (text: string): string[] => {
-    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
-      const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
-      return Array.from(segmenter.segment(text), segment => segment.segment);
-    }
-    return Array.from(text);
-  };
+  const AnyIntl = Intl as any;
+
+  if (typeof AnyIntl !== 'undefined' && AnyIntl.Segmenter) {
+    const segmenter = new AnyIntl.Segmenter('en', {
+      granularity: 'grapheme'
+    });
+
+    return Array.from(
+      segmenter.segment(text),
+      (s: any) => s.segment
+    );
+  }
+
+  return Array.from(text);
+};
 
   const elements = useMemo(() => {
-    const currentText: string = texts[currentTextIndex];
+    const currentText = texts[currentTextIndex];
+
     if (splitBy === 'characters') {
       const words = currentText.split(' ');
       return words.map((word, i) => ({
@@ -83,12 +108,14 @@ const RotatingText = forwardRef<RotatingTextRef, RotatingTextProps>((props, ref)
         needsSpace: i !== words.length - 1
       }));
     }
+
     if (splitBy === 'words') {
       return currentText.split(' ').map((word, i, arr) => ({
         characters: [word],
         needsSpace: i !== arr.length - 1
       }));
     }
+
     if (splitBy === 'lines') {
       return currentText.split('\n').map((line, i, arr) => ({
         characters: [line],
@@ -104,15 +131,14 @@ const RotatingText = forwardRef<RotatingTextRef, RotatingTextProps>((props, ref)
 
   const getStaggerDelay = useCallback(
     (index: number, totalChars: number): number => {
-      const total = totalChars;
       if (staggerFrom === 'first') return index * staggerDuration;
-      if (staggerFrom === 'last') return (total - 1 - index) * staggerDuration;
+      if (staggerFrom === 'last') return (totalChars - 1 - index) * staggerDuration;
       if (staggerFrom === 'center') {
-        const center = Math.floor(total / 2);
+        const center = Math.floor(totalChars / 2);
         return Math.abs(center - index) * staggerDuration;
       }
       if (staggerFrom === 'random') {
-        const randomIndex = Math.floor(Math.random() * total);
+        const randomIndex = Math.floor(Math.random() * totalChars);
         return Math.abs(randomIndex - index) * staggerDuration;
       }
       return Math.abs((staggerFrom as number) - index) * staggerDuration;
@@ -123,51 +149,51 @@ const RotatingText = forwardRef<RotatingTextRef, RotatingTextProps>((props, ref)
   const handleIndexChange = useCallback(
     (newIndex: number) => {
       setCurrentTextIndex(newIndex);
-      if (onNext) onNext(newIndex);
+      onNext?.(newIndex);
     },
     [onNext]
   );
 
   const next = useCallback(() => {
-    const nextIndex = currentTextIndex === texts.length - 1 ? (loop ? 0 : currentTextIndex) : currentTextIndex + 1;
-    if (nextIndex !== currentTextIndex) {
-      handleIndexChange(nextIndex);
-    }
+    const nextIndex =
+      currentTextIndex === texts.length - 1
+        ? loop
+          ? 0
+          : currentTextIndex
+        : currentTextIndex + 1;
+
+    if (nextIndex !== currentTextIndex) handleIndexChange(nextIndex);
   }, [currentTextIndex, texts.length, loop, handleIndexChange]);
 
   const previous = useCallback(() => {
-    const prevIndex = currentTextIndex === 0 ? (loop ? texts.length - 1 : currentTextIndex) : currentTextIndex - 1;
-    if (prevIndex !== currentTextIndex) {
-      handleIndexChange(prevIndex);
-    }
+    const prevIndex =
+      currentTextIndex === 0
+        ? loop
+          ? texts.length - 1
+          : currentTextIndex
+        : currentTextIndex - 1;
+
+    if (prevIndex !== currentTextIndex) handleIndexChange(prevIndex);
   }, [currentTextIndex, texts.length, loop, handleIndexChange]);
 
   const jumpTo = useCallback(
     (index: number) => {
       const validIndex = Math.max(0, Math.min(index, texts.length - 1));
-      if (validIndex !== currentTextIndex) {
-        handleIndexChange(validIndex);
-      }
+      if (validIndex !== currentTextIndex) handleIndexChange(validIndex);
     },
     [texts.length, currentTextIndex, handleIndexChange]
   );
 
   const reset = useCallback(() => {
-    if (currentTextIndex !== 0) {
-      handleIndexChange(0);
-    }
+    if (currentTextIndex !== 0) handleIndexChange(0);
   }, [currentTextIndex, handleIndexChange]);
 
-  useImperativeHandle(
-    ref,
-    () => ({
-      next,
-      previous,
-      jumpTo,
-      reset
-    }),
-    [next, previous, jumpTo, reset]
-  );
+  useImperativeHandle(ref, () => ({ next, previous, jumpTo, reset }), [
+    next,
+    previous,
+    jumpTo,
+    reset
+  ]);
 
   useEffect(() => {
     if (!auto) return;
@@ -176,8 +202,14 @@ const RotatingText = forwardRef<RotatingTextRef, RotatingTextProps>((props, ref)
   }, [next, rotationInterval, auto]);
 
   return (
-    <motion.span className={cn('text-rotate', mainClassName)} {...rest} layout transition={transition}>
+    <motion.span
+      className={cn('text-rotate', mainClassName)}
+      {...rest}
+      layout
+      transition={transition}
+    >
       <span className="text-rotate-sr-only">{texts[currentTextIndex]}</span>
+
       <AnimatePresence mode={animatePresenceMode} initial={animatePresenceInitial}>
         <motion.span
           key={currentTextIndex}
@@ -186,7 +218,15 @@ const RotatingText = forwardRef<RotatingTextRef, RotatingTextProps>((props, ref)
           aria-hidden="true"
         >
           {elements.map((wordObj, wordIndex, array) => {
-            const previousCharsCount = array.slice(0, wordIndex).reduce((sum, word) => sum + word.characters.length, 0);
+            const previousCharsCount = array
+              .slice(0, wordIndex)
+              .reduce((sum, w) => sum + w.characters.length, 0);
+
+            const totalChars = array.reduce(
+              (sum, w) => sum + w.characters.length,
+              0
+            );
+
             return (
               <span key={wordIndex} className={cn('text-rotate-word', splitLevelClassName)}>
                 {wordObj.characters.map((char, charIndex) => (
@@ -197,10 +237,7 @@ const RotatingText = forwardRef<RotatingTextRef, RotatingTextProps>((props, ref)
                     exit={exit}
                     transition={{
                       ...transition,
-                      delay: getStaggerDelay(
-                        previousCharsCount + charIndex,
-                        array.reduce((sum, word) => sum + word.characters.length, 0)
-                      )
+                      delay: getStaggerDelay(previousCharsCount + charIndex, totalChars)
                     }}
                     className={cn('text-rotate-element', elementLevelClassName)}
                   >
