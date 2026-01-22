@@ -6,7 +6,7 @@ services:
     container_name: autoclub_db
     environment:
       POSTGRES_USER: autoclub_user
-      POSTGRES_PASSWORD: autoclub_pass
+      POSTGRES_PASSWORD: autoclub_password2026
       POSTGRES_DB: autoclub_db
     ports:
       - "5432:5432"
