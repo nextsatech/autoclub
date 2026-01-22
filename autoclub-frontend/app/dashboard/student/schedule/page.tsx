@@ -4,19 +4,26 @@ import { useEffect, useState } from 'react';
 import ClassDetailModal from './components/ClassDetailModal';
 import ScheduleHeader from './components/ScheduleHeader';
 import ScheduleGrid from './components/ScheduleGrid';
+import { useToast } from '@/app/context/ToastContext';
+import ConfirmModal from '@/app/components/ConfirmModal'; // 1. Importar Modal
 
-const API_URL = 'http://localhost:3000';
+import { API_URL } from '@/app/config/api';
 
 export default function StudentSchedulePage() {
+  const { showToast } = useToast();
   const [weeks, setWeeks] = useState<any[]>([]);
   const [selectedWeekId, setSelectedWeekId] = useState<string>('');
   const [currentWeekData, setCurrentWeekData] = useState<any>(null);
-  const [selectedClass, setSelectedClass] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   
+  // Estados para selección y modales
+  const [selectedClass, setSelectedClass] = useState<any>(null);
+  const [showConfirm, setShowConfirm] = useState(false); // 2. Estado para el modal de confirmación
+  
+  const [loading, setLoading] = useState(true);
   const [studentLicenses, setStudentLicenses] = useState<number[]>([]);
   const [userRole, setUserRole] = useState<string>(''); 
 
+  // --- CARGA DE DATOS INICIALES ---
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
@@ -36,7 +43,7 @@ export default function StudentSchedulePage() {
           if (data.length > 0) setSelectedWeekId(data[0].id);
         }
       } catch (error) {
-        console.error("Error cargando semanas", error);
+        showToast('Error cargando calendario', 'error');
       } finally {
         setLoading(false);
       }
@@ -44,22 +51,36 @@ export default function StudentSchedulePage() {
     fetchWeeks();
   }, []);
 
-  useEffect(() => {
+  // --- CARGA DE CLASES DE LA SEMANA ---
+  const fetchClasses = async () => {
     if (!selectedWeekId) return;
-    const fetchClasses = async () => {
-      const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token');
+    try {
       const res = await fetch(`${API_URL}/schedules/${selectedWeekId}`, { headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) setCurrentWeekData(await res.json());
-    };
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
     fetchClasses();
   }, [selectedWeekId]);
 
-  const handleReserve = async () => {
+
+  // --- LÓGICA DE RESERVA ---
+  
+  // Paso 1: Abrir modal de confirmación (se llama desde ClassDetailModal)
+  const handleReserveClick = () => {
+    if (!selectedClass) return;
+    setShowConfirm(true);
+  };
+
+  // Paso 2: Ejecutar la reserva (se llama desde ConfirmModal)
+  const executeReservation = async () => {
     if (!selectedClass) return;
     const token = localStorage.getItem('token');
     
-    if(!confirm(`¿Confirmar reserva para: ${selectedClass.subject.name}?`)) return;
-
     try {
       const res = await fetch(`${API_URL}/reservations`, {
         method: 'POST',
@@ -70,17 +91,18 @@ export default function StudentSchedulePage() {
       const data = await res.json();
 
       if (res.ok) {
-        alert('✅ ¡Reserva exitosa!');
-        setSelectedClass(null);
-        // Recargar datos
-        const currentWeek = selectedWeekId;
-        setSelectedWeekId(''); 
-        setTimeout(() => setSelectedWeekId(currentWeek), 10); 
+        showToast('¡Reserva exitosa! Te esperamos.', 'success');
+        
+        // Cerrar modales y recargar
+        setSelectedClass(null); 
+        setShowConfirm(false);
+        fetchClasses(); // Recargar la grilla para actualizar cupos
       } else {
-        alert(`❌ Error: ${data.message}`);
+        // CORREGIDO: Usar 'error' para mensajes de fallo
+        showToast(`No se pudo reservar: ${data.message}`, 'error');
       }
     } catch (error) {
-      alert('Error de conexión');
+      showToast('Error de conexión con el servidor', 'error');
     }
   };
 
@@ -90,10 +112,10 @@ export default function StudentSchedulePage() {
     window.location.href = '/login';
   };
 
-  if (loading) return <div className="p-10 text-center animate-pulse">Cargando horario...</div>;
+  if (loading) return <div className="p-10 text-center animate-pulse text-gray-500">Cargando horario...</div>;
 
   return (
-    <div className="p-4 md:p-10 space-y-8 animate-in fade-in max-w-[1800px] mx-auto">
+    <div className="p-4 md:p-10 space-y-8 animate-in fade-in max-w-[1800px] mx-auto relative">
       
       <ScheduleHeader 
         weeks={weeks} 
@@ -101,13 +123,14 @@ export default function StudentSchedulePage() {
         onWeekChange={setSelectedWeekId} 
       />
 
+      {/* Alerta si no tiene licencias cargadas */}
       {userRole === 'student' && studentLicenses.length === 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 flex flex-col md:flex-row items-start md:items-center gap-3">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 flex flex-col md:flex-row items-start md:items-center gap-3 shadow-sm">
           <i className="bi bi-exclamation-triangle-fill text-yellow-600 text-xl"></i>
           <div className="flex-1">
             <h4 className="font-bold text-yellow-800">Actualización de datos requerida</h4>
             <p className="text-sm text-yellow-700 mt-1">
-              No se detectaron tus licencias. Por favor, vuelve a iniciar sesión.
+              No se detectaron tus licencias. Por favor, vuelve a iniciar sesión para actualizar tus permisos.
             </p>
           </div>
           <button 
@@ -128,13 +151,24 @@ export default function StudentSchedulePage() {
         />
       )}
 
+      {/* DETALLE DE CLASE */}
       {selectedClass && (
         <ClassDetailModal 
           cls={selectedClass} 
           onClose={() => setSelectedClass(null)} 
-          onReserve={handleReserve}
+          onReserve={handleReserveClick} // Ahora abre el confirm
         />
       )}
+
+      {/* CONFIRMACIÓN DE RESERVA */}
+      <ConfirmModal
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={executeReservation}
+        title="Confirmar Reserva"
+        message={`¿Deseas reservar tu cupo para la clase de ${selectedClass?.subject?.name}?`}
+        type="info" // Usamos 'info' (azul) porque es una acción positiva
+      />
 
     </div>
   );

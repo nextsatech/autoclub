@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import StatCard from './components/StatCard';
 import Link from 'next/link';
 
-const API_URL = 'http://localhost:3000';
+import { API_URL } from '@/app/config/api';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<any>(null);

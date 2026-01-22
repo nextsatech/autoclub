@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useToast } from '@/app/context/ToastContext';
+import ConfirmModal from '@/app/components/ConfirmModal';
 
-const API_URL = 'http://localhost:3000'; 
+import { API_URL } from '@/app/config/api';
 
 interface User {
   id: number;
@@ -21,7 +23,7 @@ interface Subject {
 
 interface ClassSession {
   id: number;
-  subject?: Subject; 
+  subject?: Subject;
   class_date: string;
   start_time: string;
   end_time: string;
@@ -32,12 +34,14 @@ interface ClassSession {
 export default function AdminClassesPage() {
   const [classes, setClasses] = useState<ClassSession[]>([]);
   const [instructors, setInstructors] = useState<Professor[]>([]);
-  const [subjects, setSubjects] = useState<Subject[]>([]); 
+  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
   
-  // Estado del Formulario
+  const { showToast } = useToast();
+
   const [formData, setFormData] = useState({
-    subject_id: '', 
+    subject_id: '',
     class_date: '',
     start_time: '',
     end_time: '',
@@ -50,24 +54,19 @@ export default function AdminClassesPage() {
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-      // 1. Cargar Clases 
       const resClasses = await fetch(`${API_URL}/classes`, { headers });
       if (resClasses.ok) setClasses(await resClasses.json());
 
-      // 2. Cargar Instructores
       const resProfessors = await fetch(`${API_URL}/professors`, { headers });
       if (resProfessors.ok) setInstructors(await resProfessors.json());
 
-      // 3. Cargar Materias
       const resSubjects = await fetch(`${API_URL}/subjects`, { headers });
       if (resSubjects.ok) {
         setSubjects(await resSubjects.json());
-      } else {
-        console.warn("No se pudieron cargar las materias. Verifica el endpoint /subjects");
       }
 
     } catch (error) {
-      console.error("Error de conexión:", error);
+      showToast('Error de conexión', 'error');
     } finally {
       setLoading(false);
     }
@@ -82,14 +81,12 @@ export default function AdminClassesPage() {
     const token = localStorage.getItem('token');
 
     try {
-      // ⚠️ FIX ZONA HORARIA: Construcción manual del ISO String
-      // Esto asegura que la hora que escribes es la hora que se guarda (UTC puro)
       const isoStart = `${formData.class_date}T${formData.start_time}:00.000Z`;
       const isoEnd = `${formData.class_date}T${formData.end_time}:00.000Z`;
 
       const payload = {
         subject_id: Number(formData.subject_id),
-        class_date: isoStart, 
+        class_date: isoStart,
         start_time: isoStart,
         end_time: isoEnd,
         max_capacity: Number(formData.max_capacity),
@@ -98,9 +95,9 @@ export default function AdminClassesPage() {
 
       const res = await fetch(`${API_URL}/classes`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}` 
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(payload),
       });
@@ -109,52 +106,53 @@ export default function AdminClassesPage() {
         const errorData = await res.json();
         throw new Error(errorData.message || 'Error al crear clase');
       }
-
-      alert('✅ Clase creada correctamente');
       
-      // Limpiar formulario
-      setFormData(prev => ({...prev, subject_id: '', professor_id: ''})); 
-      loadData(); 
+      showToast('Clase creada correctamente', 'success');
+      setFormData(prev => ({...prev, subject_id: '', professor_id: ''}));
+      loadData();
 
     } catch (error: any) {
-      alert(`❌ Error: ${error.message}`);
+      showToast(`Error: ${error.message}`, 'error');
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('¿Estás seguro de eliminar esta clase permanentemente?')) return;
+  const confirmDelete = (id: number) => {
+    setDeleteId(id);
+  };
+
+  const executeDelete = async () => {
+    if (!deleteId) return;
 
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`${API_URL}/classes/${id}`, {
+      const res = await fetch(`${API_URL}/classes/${deleteId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
 
       if (res.ok) {
-        setClasses(prev => prev.filter(c => c.id !== id));
-        alert('Clase eliminada');
+        setClasses(prev => prev.filter(c => c.id !== deleteId));
+        showToast('Clase eliminada', 'success');
       } else {
         const err = await res.json();
-        alert(`No se pudo eliminar: ${err.message || 'Error desconocido'}`);
+        showToast(`No se pudo eliminar: ${err.message || 'Error desconocido'}`, 'error');
       }
     } catch (error) {
-      console.error(error);
+      showToast('Error de conexión', 'error');
     }
+    setDeleteId(null);
   };
 
-  // Función auxiliar para obtener nombre del profesor
   const getProfName = (cls: ClassSession) => cls.professor?.user?.full_name || 'Sin Asignar';
 
   if (loading) return <div className="p-10 text-gray-500">Cargando panel...</div>;
 
   return (
-    <div className="p-6 space-y-8 animate-in fade-in duration-500">
+    <div className="p-6 space-y-8 animate-in fade-in duration-500 relative">
       <h1 className="text-2xl font-bold text-gray-900">Gestión de Clases</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* COLUMNA 1: FORMULARIO */}
         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm h-fit">
           <h2 className="font-bold text-lg mb-4 flex items-center gap-2">
             <span className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center text-sm"><i className="bi bi-plus-lg"></i></span>
@@ -162,8 +160,6 @@ export default function AdminClassesPage() {
           </h2>
           
           <form onSubmit={handleSubmit} className="space-y-4">
-            
-            {/* SELECTOR DE MATERIA */}
             <div>
               <label className="text-xs font-bold text-gray-500 uppercase">Materia / Tema</label>
               <select 
@@ -183,7 +179,6 @@ export default function AdminClassesPage() {
               </select>
             </div>
 
-            {/* FECHA */}
             <div>
               <label className="text-xs font-bold text-gray-500 uppercase">Fecha</label>
               <input 
@@ -195,7 +190,6 @@ export default function AdminClassesPage() {
               />
             </div>
 
-            {/* HORAS */}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-bold text-gray-500 uppercase">Inicio</label>
@@ -209,7 +203,6 @@ export default function AdminClassesPage() {
               </div>
             </div>
 
-            {/* CUPOS Y PROFESOR */}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-bold text-gray-500 uppercase">Cupos</label>
@@ -242,7 +235,6 @@ export default function AdminClassesPage() {
           </form>
         </div>
 
-        {/* COLUMNA 2: LISTADO DE CLASES */}
         <div className="lg:col-span-2 space-y-4">
           <h2 className="font-bold text-lg text-gray-800">Clases Programadas</h2>
           
@@ -255,7 +247,6 @@ export default function AdminClassesPage() {
               {classes.map(cls => (
                 <div key={cls.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex justify-between items-center group">
                   <div className="flex items-center gap-4">
-                    {/* FECHA GRANDE (Con fix UTC) */}
                     <div className="flex flex-col items-center justify-center w-14 h-14 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-100">
                       <span className="text-xs font-bold uppercase">
                         {new Date(cls.class_date).toLocaleDateString('es-CO', { month: 'short', timeZone: 'UTC' })}
@@ -266,7 +257,6 @@ export default function AdminClassesPage() {
                     </div>
 
                     <div>
-                      {/* TITULO DE LA MATERIA */}
                       <h3 className="font-bold text-gray-900 text-lg">
                         {cls.subject?.name || 'Materia Desconocida'}
                       </h3>
@@ -283,14 +273,13 @@ export default function AdminClassesPage() {
                     </div>
                   </div>
 
-                  {/* COLUMNA DERECHA: CUPOS Y ELIMINAR */}
                   <div className="flex flex-col items-end gap-2">
                     <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold">
                       {cls.available_capacity} cupos
                     </span>
                     
                     <button 
-                      onClick={() => handleDelete(cls.id)}
+                      onClick={() => confirmDelete(cls.id)}
                       className="text-red-500 hover:text-red-700 text-xs font-bold flex items-center gap-1 hover:bg-red-50 px-2 py-1 rounded transition-colors"
                     >
                       <i className="bi bi-trash"></i> Eliminar
@@ -301,8 +290,16 @@ export default function AdminClassesPage() {
             </div>
           )}
         </div>
-
       </div>
+
+      <ConfirmModal
+        isOpen={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={executeDelete}
+        title="¿Eliminar Clase?"
+        message="Esta acción eliminará la clase y todas las reservas asociadas. No se puede deshacer."
+        type="danger"
+      />
     </div>
   );
 }

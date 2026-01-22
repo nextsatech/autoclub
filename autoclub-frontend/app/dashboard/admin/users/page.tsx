@@ -3,15 +3,21 @@
 import { useEffect, useState } from 'react';
 import UserTable from './components/UserTable';
 import UserModal from './components/UserModal';
+import { useToast } from '@/app/context/ToastContext';
+import ConfirmModal from '@/app/components/ConfirmModal';
 
-const API_URL = 'http://localhost:3000';
+import { API_URL } from '@/app/config/api';
 
 export default function UsersPage() {
+  const { showToast } = useToast();
   const [users, setUsers] = useState<any[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
   const [licenses, setLicenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Estado para el Modal de Confirmación de borrado
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -29,7 +35,7 @@ export default function UsersPage() {
       if (resRoles.ok) setRoles(await resRoles.json());
       if (resLicenses.ok) setLicenses(await resLicenses.json());
     } catch (e) {
-      console.error(e);
+      showToast('Error al cargar datos', 'error');
     } finally {
       setLoading(false);
     }
@@ -75,31 +81,50 @@ export default function UsersPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        alert(selectedUser ? '✅ Usuario actualizado' : '✅ Usuario creado exitosamente');
+        showToast(selectedUser ? 'Usuario actualizado correctamente' : 'Usuario creado exitosamente', 'success');
         setIsModalOpen(false);
         loadData();
       } else {
-        alert(`❌ Error: ${data.message}`);
+        showToast(`Error: ${data.message}`, 'error');
       }
     } catch (error) {
-      alert('Error de conexión');
+      showToast('Error de conexión con el servidor', 'error');
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('¿Estás seguro de eliminar este usuario?')) return;
-    const token = localStorage.getItem('token');
-    await fetch(`${API_URL}/users/${id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    loadData();
+  // 1. Solo abre el modal
+  const handleDelete = (id: number) => {
+    setDeleteId(id);
   };
 
-  if (loading) return <div className="p-8 text-center text-gray-500">Cargando sistema...</div>;
+  // 2. Ejecuta el borrado real
+  const executeDelete = async () => {
+    if (!deleteId) return;
+    const token = localStorage.getItem('token');
+    
+    try {
+      const res = await fetch(`${API_URL}/users/${deleteId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        showToast('Usuario eliminado', 'success');
+        loadData();
+      } else {
+        const data = await res.json();
+        showToast(`No se pudo eliminar: ${data.message}`, 'error');
+      }
+    } catch (error) {
+      showToast('Error de red al eliminar', 'error');
+    }
+    setDeleteId(null);
+  };
+
+  if (loading) return <div className="p-8 text-center text-gray-400 animate-pulse">Cargando sistema...</div>;
 
   return (
-    <div className="p-8 space-y-6 animate-in fade-in">
+    <div className="p-8 space-y-6 animate-in fade-in relative">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-black text-gray-900">Gestión de Usuarios</h1>
@@ -118,7 +143,7 @@ export default function UsersPage() {
           </div>
           <button
             onClick={handleOpenCreate}
-            className="bg-black text-white px-4 py-2 rounded-xl font-bold hover:bg-gray-800 transition-transform active:scale-95 whitespace-nowrap"
+            className="bg-black text-white px-4 py-2 rounded-xl font-bold hover:bg-zinc-800 transition-transform active:scale-95 whitespace-nowrap shadow-lg shadow-zinc-900/10"
           >
             + Nuevo
           </button>
@@ -134,6 +159,15 @@ export default function UsersPage() {
         user={selectedUser}
         roles={roles}
         licenses={licenses}
+      />
+
+      <ConfirmModal 
+        isOpen={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={executeDelete}
+        title="¿Eliminar Usuario?"
+        message="Esta acción eliminará permanentemente al usuario y toda su información relacionada (historial, reservas, etc)."
+        type="danger"
       />
     </div>
   );

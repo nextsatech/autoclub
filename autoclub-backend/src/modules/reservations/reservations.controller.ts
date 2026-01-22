@@ -34,6 +34,12 @@ export class ReservationsController {
     @Body('attended') attended: boolean,
     @Request() req,
   ) {
-    return this.reservationsService.markAttendance(+id, req.user.studentId, attended);
+    return this.reservationsService.markAttendance(+id, req.user.userId, attended);
+  }
+
+  @Post('admin/create')
+  @Roles('admin') // Solo admins
+  createByAdmin(@Body() body: { student_id: number; class_id: number }) {
+    return this.reservationsService.createByAdmin(body.student_id, body.class_id);
   }
 }

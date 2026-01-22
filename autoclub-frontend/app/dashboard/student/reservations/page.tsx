@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useToast } from '@/app/context/ToastContext';
+import ConfirmModal from '@/app/components/ConfirmModal';
 
-const API_URL = 'http://localhost:3000';
+import { API_URL } from '@/app/config/api';
 
 const formatTime = (isoString: string) => {
   return new Date(isoString).toLocaleTimeString([], {
@@ -11,10 +13,14 @@ const formatTime = (isoString: string) => {
 };
 
 export default function MyReservationsPage() {
+  const { showToast } = useToast();
   const [reservations, setReservations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Estado para el modal de cancelación
+  const [cancelId, setCancelId] = useState<number | null>(null);
 
-  // 1. Cargar Datos (CORREGIDO: Usando /mine)
+  // 1. Cargar Datos
   const loadData = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -26,7 +32,7 @@ export default function MyReservationsPage() {
         setReservations(data);
       }
     } catch (error) {
-      console.error(error);
+      showToast('Error de conexión', 'error');
     } finally {
       setLoading(false);
     }
@@ -34,25 +40,32 @@ export default function MyReservationsPage() {
 
   useEffect(() => { loadData(); }, []);
 
-  // 2. Lógica Cancelar (Solo para futuras)
-  const handleCancel = async (id: number) => {
-    if (!confirm('¿Seguro que deseas cancelar esta clase? Perderás tu cupo.')) return;
+  // 2. Lógica Cancelar (Dividida en 2 pasos para el Modal)
+  const confirmCancel = (id: number) => {
+    setCancelId(id);
+  };
+
+  const executeCancel = async () => {
+    if (!cancelId) return;
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`${API_URL}/reservations/${id}/cancel`, {
+      const res = await fetch(`${API_URL}/reservations/${cancelId}/cancel`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
-        alert('Reserva cancelada y cupo liberado.');
+        showToast('Reserva cancelada y cupo liberado.', 'success');
         loadData(); 
       } else {
-        alert('Error al cancelar');
+        showToast('Error al cancelar reserva', 'error');
       }
-    } catch (error) { console.error(error); }
+    } catch (error) { 
+      showToast('Error de red', 'error'); 
+    }
+    setCancelId(null);
   };
 
-  // 3. Nueva Lógica: Confirmar Asistencia
+  // 3. Confirmar Asistencia
   const handleConfirmAttendance = async (reservationId: number, attended: boolean) => {
     const token = localStorage.getItem('token');
     try {
@@ -63,38 +76,29 @@ export default function MyReservationsPage() {
       });
 
       if (res.ok) {
-        // Actualizamos visualmente sin recargar todo
         setReservations(prev => prev.map(r => 
           r.id === reservationId ? { ...r, attendance: attended } : r
         ));
+        showToast(attended ? 'Asistencia confirmada' : 'Inasistencia registrada', 'success');
       } else {
-        alert('Error al guardar confirmación');
+        showToast('Error al guardar confirmación', 'error');
       }
-    } catch (error) { alert('Error de conexión'); }
+    } catch (error) { 
+      showToast('Error de conexión', 'error'); 
+    }
   };
 
-  // 4. Helper para saber si la clase ya pasó
   const isPast = (dateStr: string, timeStr: string) => {
-    // Combinamos fecha y hora para ser precisos
-    const classDateTime = new Date(dateStr);
-    const [hours, minutes] = new Date(timeStr).toLocaleTimeString('en-US', { hour12: false, timeZone: 'UTC' }).split(':');
-    // Nota: Ajuste simple. Para mayor precisión usa librerías como dayjs, pero esto sirve nativo.
-    // Como tu timeStr viene en ISO completo del backend, es mejor usarlo directo si puedes,
-    // o asumir que dateStr ya tiene la fecha base correcta.
-    
-    // Comparación simple de fechas (asumiendo que si el día pasó, ya pasó)
     const now = new Date();
     const clsDate = new Date(dateStr);
-    // Ajustamos clsDate al final del día para asegurar
-    clsDate.setHours(23, 59, 59);
-    
+    clsDate.setHours(23, 59, 59); // Final del día
     return now > clsDate;
   };
 
   if (loading) return <div className="p-10 text-center text-gray-400 animate-pulse">Cargando tus clases...</div>;
 
   return (
-    <div className="p-6 md:p-10 space-y-8 animate-in fade-in max-w-5xl mx-auto">
+    <div className="p-6 md:p-10 space-y-8 animate-in fade-in max-w-5xl mx-auto relative">
       
       <div>
         <h1 className="text-3xl font-black text-gray-900 tracking-tight">Mis Clases Registradas</h1>
@@ -108,7 +112,7 @@ export default function MyReservationsPage() {
           </div>
           <h3 className="text-xl font-bold text-gray-900">No tienes clases próximas</h3>
           <p className="text-gray-500 mt-2 mb-6">Ve al horario y reserva tu primera práctica.</p>
-          <a href="/dashboard/student/schedule" className="bg-black text-white px-6 py-3 rounded-xl font-bold hover:bg-gray-800 transition-colors">
+          <a href="/dashboard/student/schedule" className="bg-black text-white px-6 py-3 rounded-xl font-bold hover:bg-zinc-800 transition-colors">
             Ir a Reservar
           </a>
         </div>
@@ -117,8 +121,6 @@ export default function MyReservationsPage() {
           {reservations.map((res: any) => {
             const cls = res.class;
             
-            // Calculamos estados
-            // Nota: Asegúrate que tu backend devuelva cls.end_time o usa cls.start_time
             const classHasPassed = isPast(cls.class_date, cls.start_time);
             const needsConfirmation = classHasPassed && res.attendance === null;
             
@@ -160,7 +162,7 @@ export default function MyReservationsPage() {
                       </span>
                     </div>
 
-                    {/* STATUS DE ASISTENCIA (Solo si ya se marcó) */}
+                    {/* STATUS DE ASISTENCIA */}
                     {res.attendance === true && (
                       <span className="inline-flex items-center gap-1 text-green-600 font-bold text-xs bg-green-50 px-2 py-1 rounded">
                         <i className="bi bi-check-circle-fill"></i> Asistida
@@ -173,10 +175,9 @@ export default function MyReservationsPage() {
                     )}
                   </div>
 
-                  {/* ACCIONES (DERECHA) */}
+                  {/* ACCIONES */}
                   <div className="w-full md:w-auto flex justify-center">
                     {needsConfirmation ? (
-                      // --- MODO CONFIRMACIÓN (Clase pasada) ---
                       <div className="flex flex-col gap-2 w-full md:w-auto">
                         <p className="text-xs font-bold text-yellow-800 text-center mb-1">¿Asististe?</p>
                         <div className="flex gap-2">
@@ -195,11 +196,9 @@ export default function MyReservationsPage() {
                         </div>
                       </div>
                     ) : (
-                      // --- MODO FUTURO (Botón Cancelar) ---
-                      // Solo mostramos cancelar si NO ha pasado y NO se ha confirmado asistencia
                       (!classHasPassed && res.attendance === null) ? (
                         <button 
-                          onClick={() => handleCancel(res.id)}
+                          onClick={() => confirmCancel(res.id)}
                           className="w-full md:w-auto px-6 py-3 rounded-xl border-2 border-red-50 text-red-500 font-bold hover:bg-red-50 hover:border-red-100 transition-colors flex items-center justify-center gap-2"
                         >
                           <i className="bi bi-x-circle-fill"></i> Cancelar
@@ -210,7 +209,6 @@ export default function MyReservationsPage() {
 
                 </div>
                 
-                {/* Barra decorativa si necesita confirmación */}
                 {needsConfirmation && (
                   <div className="absolute top-0 left-0 bottom-0 w-1 bg-yellow-400"></div>
                 )}
@@ -219,6 +217,16 @@ export default function MyReservationsPage() {
           })}
         </div>
       )}
+
+      {/* MODAL DE CONFIRMACIÓN PARA CANCELAR */}
+      <ConfirmModal 
+        isOpen={!!cancelId}
+        onClose={() => setCancelId(null)}
+        onConfirm={executeCancel}
+        title="¿Cancelar Reserva?"
+        message="¿Estás seguro que deseas cancelar tu asistencia? Liberarás el cupo para otro compañero."
+        type="danger"
+      />
     </div>
   );
 }

@@ -12,6 +12,7 @@ import { LicenseCategoriesModule } from './modules/license-categories/license-ca
 import { StudentsModule } from './modules/students/students.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { UsersModule } from './modules/users/users.module';
+import { ModulesModule } from './modules/modules/modules.module';
 
 
 @Module({
@@ -26,7 +27,8 @@ import { UsersModule } from './modules/users/users.module';
     LicenseCategoriesModule, 
     StudentsModule, 
     RolesModule, 
-    UsersModule
+    UsersModule,
+    ModulesModule
   ],
   controllers: [AppController],
   providers: [AppService],

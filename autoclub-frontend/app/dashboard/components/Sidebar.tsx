@@ -76,6 +76,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             <NavLink href="/dashboard" icon="bi-grid-fill" label="Panel Principal" active={isActive('/dashboard')} activeClass={activeClass} inactiveClass={inactiveClass} />
             <NavLink href="/dashboard/admin/schedules" icon="bi-calendar-week" label="Programación Semanal" active={isActive('/dashboard/admin/schedules')} activeClass={activeClass} inactiveClass={inactiveClass} />
             <NavLink href="/dashboard/admin/classes" icon="bi-easel2-fill" label="Crear Clases" active={isActive('/dashboard/admin/classes')} activeClass={activeClass} inactiveClass={inactiveClass} />
+            <NavLink href="/dashboard/admin/reservations" icon="bi-person-check-fill" label="Registro Manual" active={isActive('/dashboard/admin/reservations')} activeClass={activeClass} inactiveClass={inactiveClass} /> {/* NUEVO ENLACE */}
             
             <SectionTitle>Configuración</SectionTitle>
             <NavLink href="/dashboard/admin/subjects" icon="bi-book-half" label="Materias" active={isActive('/dashboard/admin/subjects')} activeClass={activeClass} inactiveClass={inactiveClass} />

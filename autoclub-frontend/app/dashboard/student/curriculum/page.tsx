@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-const API_URL = 'http://localhost:3000';
+import { API_URL } from '@/app/config/api';
 
 interface Category { id: number; name: string; }
 interface Subject { id: number; name: string; moduleId: number; categories: Category[]; }

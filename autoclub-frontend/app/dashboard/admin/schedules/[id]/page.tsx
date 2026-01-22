@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 
-const API_URL = 'http://localhost:3000';
+import { API_URL } from '@/app/config/api';
 
 export default function ScheduleManagePage() {
   const { id } = useParams();

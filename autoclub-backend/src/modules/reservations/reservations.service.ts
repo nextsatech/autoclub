@@ -6,70 +6,70 @@ import { CreateReservationDto } from './dto/create-reservation.dto';
 export class ReservationsService {
   constructor(private prisma: PrismaService) {}
 
-  // --- CREAR RESERVA (Con validación de Materia Repetida) ---
+  // --- 1. MÉTODO PÚBLICO (Lo usa el estudiante) ---
   async create(createReservationDto: CreateReservationDto, userId: number) {
-    // 1. Obtener al estudiante
-    const student = await this.prisma.student.findUnique({
-      where: { user_id: userId }
-    });
+    const student = await this.prisma.student.findUnique({ where: { user_id: userId } });
+    if (!student) throw new BadRequestException('El usuario no es un estudiante activo.');
+    
+    // Llamamos al motor central pasando el ID del estudiante encontrado
+    return this.registerStudent(student.id, createReservationDto.class_id);
+  }
 
-    if (!student) {
-      throw new BadRequestException('El usuario no es un estudiante activo.');
-    }
+  // --- 2. MÉTODO ADMIN (Lo usa el panel administrativo) ---
+  async createByAdmin(studentId: number, classId: number) {
+    // Validamos que el estudiante exista
+    const student = await this.prisma.student.findUnique({ where: { id: studentId } });
+    if (!student) throw new NotFoundException('Estudiante no encontrado');
 
-    const classId = createReservationDto.class_id;
+    return this.registerStudent(studentId, classId);
+  }
 
+  // --- 3. MOTOR CENTRAL DE RESERVAS (Privado) ---
+  private async registerStudent(studentId: number, classId: number) {
     return this.prisma.$transaction(async (tx) => {
-      // 2. Buscar la clase que quiere reservar
+      // A. Buscar clase
       const classSession = await tx.class.findUnique({
         where: { id: classId },
-        include: { subject: true } // Traemos la materia para validar
+        include: { subject: true }
       });
 
       if (!classSession) throw new NotFoundException('La clase no existe');
 
-      // 3. Validación de Cupos
+      // B. Validar Cupo
       if (classSession.available_capacity <= 0) {
         throw new BadRequestException('La clase ya está llena.');
       }
 
-      // 4. VALIDACIÓN DE MATERIA REPETIDA (TU REQUERIMIENTO)
-      // Buscamos si ya tiene alguna reserva activa para ESTA MISMA MATERIA (subject_id)
+      // C. Validar Materia Repetida
       const subjectAlreadyTaken = await tx.reservation.findFirst({
         where: {
-          student_id: student.id,
-          status: 'ACTIVE', // Que no esté cancelada
-          class: {
-            subject_id: classSession.subject_id // Misma materia
-          },
-          // Lógica: Si la asistencia es TRUE (La pasó) o NULL (La tiene matriculada/pendiente), BLOQUEAR.
-          // Solo permitimos reservar si attendance es FALSE (La perdió y la va a repetir).
+          student_id: studentId,
+          status: 'ACTIVE',
+          class: { subject_id: classSession.subject_id },
           attendance: { not: false } 
         }
       });
 
       if (subjectAlreadyTaken) {
         throw new BadRequestException(
-          `Ya tienes inscrita o aprobada la materia: ${classSession.subject.name}. No puedes volver a tomarla a menos que registres inasistencia.`
+          `El estudiante ya tiene inscrita o aprobada la materia: ${classSession.subject.name}.`
         );
       }
 
-      // 5. Crear la reserva
+      // D. Crear Reserva
       const reservation = await tx.reservation.create({
         data: {
-          student_id: student.id,
+          student_id: studentId,
           class_id: classId,
           status: 'ACTIVE',
-          attendance: null // Por defecto es null (Asistió implícitamente hasta que se diga lo contrario)
+          attendance: null
         }
       });
 
-      // 6. Restar cupo
+      // E. Restar cupo
       await tx.class.update({
         where: { id: classId },
-        data: {
-          available_capacity: { decrement: 1 }
-        }
+        data: { available_capacity: { decrement: 1 } }
       });
 
       return reservation;

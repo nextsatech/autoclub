@@ -1,17 +1,25 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useToast } from '@/app/context/ToastContext';
+import ConfirmModal from '@/app/components/ConfirmModal';
 
-const API_URL = 'http://localhost:3000';
+import { API_URL } from '@/app/config/api';
 
 export default function ModulesPage() {
   const [modules, setModules] = useState<any[]>([]);
   const [name, setName] = useState('');
-  const [editingId, setEditingId] = useState<number | null>(null); // Estado para saber si editamos
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const { showToast } = useToast();
 
   const loadData = async () => {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${API_URL}/modules`, { headers: { Authorization: `Bearer ${token}` } });
-    if (res.ok) setModules(await res.json());
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/modules`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) setModules(await res.json());
+    } catch (error) {
+      showToast('Error de conexión', 'error');
+    }
   };
 
   useEffect(() => { loadData(); }, []);
@@ -21,19 +29,28 @@ export default function ModulesPage() {
     if(!name) return;
     const token = localStorage.getItem('token');
     
-    // Lógica dual: Crear o Editar
     const method = editingId ? 'PATCH' : 'POST';
     const url = editingId ? `${API_URL}/modules/${editingId}` : `${API_URL}/modules`;
 
-    await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ name })
-    });
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ name })
+      });
 
-    setName('');
-    setEditingId(null); // Resetear estado
-    loadData();
+      if (res.ok) {
+        showToast(editingId ? 'Módulo actualizado' : 'Módulo creado', 'success');
+        setName('');
+        setEditingId(null);
+        loadData();
+      } else {
+        const err = await res.json();
+        showToast(err.message || 'Error al guardar', 'error');
+      }
+    } catch (error) {
+      showToast('Error de red', 'error');
+    }
   };
 
   const handleEdit = (module: any) => {
@@ -46,15 +63,34 @@ export default function ModulesPage() {
     setName('');
   };
 
-  const handleDelete = async (id: number) => {
-    if(!confirm('¿Eliminar módulo?')) return;
+  const confirmDelete = (id: number) => {
+    setDeleteId(id);
+  };
+
+  const executeDelete = async () => {
+    if(!deleteId) return;
     const token = localStorage.getItem('token');
-    await fetch(`${API_URL}/modules/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-    loadData();
+    
+    try {
+      const res = await fetch(`${API_URL}/modules/${deleteId}`, { 
+        method: 'DELETE', 
+        headers: { Authorization: `Bearer ${token}` } 
+      });
+
+      if (res.ok) {
+        showToast('Módulo eliminado', 'success');
+        loadData();
+      } else {
+        showToast('No se pudo eliminar. Verifique dependencias.', 'error');
+      }
+    } catch (error) {
+      showToast('Error de red', 'error');
+    }
+    setDeleteId(null);
   };
 
   return (
-    <div className="p-8 max-w-4xl space-y-8 animate-in fade-in">
+    <div className="p-8 max-w-4xl space-y-8 animate-in fade-in relative">
       <h1 className="text-3xl font-black text-gray-900">Gestión de Módulos</h1>
       
       <div className="grid md:grid-cols-3 gap-8">
@@ -62,7 +98,8 @@ export default function ModulesPage() {
           <h3 className="font-bold mb-4">{editingId ? 'Editar Módulo' : 'Crear Módulo'}</h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <input 
-              className="w-full p-3 border rounded-xl" placeholder="Ej: Módulo Teórico" 
+              className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-black" 
+              placeholder="Ej: Módulo Teórico" 
               value={name} onChange={e => setName(e.target.value)} 
             />
             <div className="flex gap-2">
@@ -89,7 +126,7 @@ export default function ModulesPage() {
                 <button onClick={() => handleEdit(m)} className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-colors">
                   <i className="bi bi-pencil-square"></i>
                 </button>
-                <button onClick={() => handleDelete(m.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors">
+                <button onClick={() => confirmDelete(m.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors">
                   <i className="bi bi-trash"></i>
                 </button>
               </div>
@@ -97,6 +134,15 @@ export default function ModulesPage() {
           ))}
         </div>
       </div>
+
+      <ConfirmModal 
+        isOpen={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={executeDelete}
+        title="¿Eliminar Módulo?"
+        message="Esta acción no se puede deshacer. Asegúrate de que no haya materias vinculadas."
+        type="danger"
+      />
     </div>
   );
 }
