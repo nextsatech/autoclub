@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useToast } from '@/app/context/ToastContext';
 import ConfirmModal from '@/app/components/ConfirmModal';
-
-import { API_URL } from '@/app/config/api';
+import { API_URL } from '@/app/config/api'; // Importamos la variable centralizada
 
 interface User {
   id: number;
@@ -52,7 +51,8 @@ export default function AdminClassesPage() {
   const loadData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      // CORRECCIÓN AQUÍ: Tipado explícito para evitar el error de build
+      const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
 
       const resClasses = await fetch(`${API_URL}/classes`, { headers });
       if (resClasses.ok) setClasses(await resClasses.json());
