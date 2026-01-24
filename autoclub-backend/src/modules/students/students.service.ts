@@ -9,12 +9,11 @@ import { UpdateStudentDto } from './dto/update-student.dto';
 export class StudentsService {
   constructor(private prisma: PrismaService) {}
 
-  // --- CORRECCIÓN AQUÍ ---
-  // Ahora devolvemos la entidad 'Student' incluyendo su 'User'
+  
   findAll() {
     return this.prisma.student.findMany({
       include: {
-        user: true, // Traemos nombre, documento, email
+        user: true, 
         license_categories: true 
       },
       orderBy: { id: 'asc' }
@@ -22,7 +21,6 @@ export class StudentsService {
   }
 
   async create(dto: CreateStudentDto) {
-    // ... (El resto del código se mantiene IGUAL, no lo borres)
     const existingUser = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (existingUser) throw new BadRequestException('El email ya está registrado');
 

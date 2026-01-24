@@ -109,3 +109,9 @@ Ventana de mensajes de confirmacion ya que asi como lo muestra o muestra en mobi
 
 Mejorar la tarjeta donde esta el logotipo puede ser dejar el color 
 estatico ya que no se puede sobrecargar la pagian con tantas animaciones y movimiento
+
+que se cierre la sesion despues de ceirto tiempo
+
+CAMBIAR NOMBRE DE MATERIAS A CLASE
+
+Quitar la regla del registro manual los fines de semana

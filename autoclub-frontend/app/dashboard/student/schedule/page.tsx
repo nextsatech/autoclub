@@ -5,7 +5,7 @@ import ClassDetailModal from './components/ClassDetailModal';
 import ScheduleHeader from './components/ScheduleHeader';
 import ScheduleGrid from './components/ScheduleGrid';
 import { useToast } from '@/app/context/ToastContext';
-import ConfirmModal from '@/app/components/ConfirmModal'; // 1. Importar Modal
+import ConfirmModal from '@/app/components/ConfirmModal'; 
 
 import { API_URL } from '@/app/config/api';
 
@@ -17,18 +17,24 @@ export default function StudentSchedulePage() {
   
   // Estados para selección y modales
   const [selectedClass, setSelectedClass] = useState<any>(null);
-  const [showConfirm, setShowConfirm] = useState(false); // 2. Estado para el modal de confirmación
+  const [showConfirm, setShowConfirm] = useState(false); 
   
   const [loading, setLoading] = useState(true);
   const [studentLicenses, setStudentLicenses] = useState<number[]>([]);
   const [userRole, setUserRole] = useState<string>(''); 
+  
+  // 👇 NUEVO: Estado para guardar los IDs de las materias ya reservadas
+  const [reservedSubjectIds, setReservedSubjectIds] = useState<number[]>([]);
 
   // --- CARGA DE DATOS INICIALES ---
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
+    let isStudent = false;
+
     if (storedUser) {
       const user = JSON.parse(storedUser);
       setUserRole(user.role?.name || ''); 
+      isStudent = user.role?.name === 'student';
       const licenses = user.student?.license_categories?.map((l: any) => Number(l.id)) || [];
       setStudentLicenses(licenses);
     }
@@ -48,7 +54,24 @@ export default function StudentSchedulePage() {
         setLoading(false);
       }
     };
+
+    // 👇 NUEVO: Función para buscar las materias que este estudiante ya tiene
+    const fetchMyReservations = async () => {
+      const token = localStorage.getItem('token');
+      try {
+        const res = await fetch(`${API_URL}/reservations/mine`, { headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok) {
+          const data = await res.json();
+          // Extraemos solo el ID de la materia de cada reserva
+          const subjectIds = data.map((r: any) => r.class.subject.id);
+          setReservedSubjectIds(subjectIds);
+        }
+      } catch (e) { console.error("Error cargando reservas previas"); }
+    };
+
     fetchWeeks();
+    // Solo cargamos las reservas si el usuario es estudiante
+    if (isStudent) fetchMyReservations(); 
   }, []);
 
   // --- CARGA DE CLASES DE LA SEMANA ---
@@ -70,13 +93,11 @@ export default function StudentSchedulePage() {
 
   // --- LÓGICA DE RESERVA ---
   
-  // Paso 1: Abrir modal de confirmación (se llama desde ClassDetailModal)
   const handleReserveClick = () => {
     if (!selectedClass) return;
     setShowConfirm(true);
   };
 
-  // Paso 2: Ejecutar la reserva (se llama desde ConfirmModal)
   const executeReservation = async () => {
     if (!selectedClass) return;
     const token = localStorage.getItem('token');
@@ -93,17 +114,30 @@ export default function StudentSchedulePage() {
       if (res.ok) {
         showToast('¡Reserva exitosa! Te esperamos.', 'success');
         
+        // 👇 NUEVO: Agregamos la materia recién reservada a la lista de "bloqueadas"
+        setReservedSubjectIds(prev => [...prev, selectedClass.subject.id]);
+
         // Cerrar modales y recargar
         setSelectedClass(null); 
         setShowConfirm(false);
-        fetchClasses(); // Recargar la grilla para actualizar cupos
+        fetchClasses(); 
       } else {
-        // CORREGIDO: Usar 'error' para mensajes de fallo
         showToast(`No se pudo reservar: ${data.message}`, 'error');
       }
     } catch (error) {
       showToast('Error de conexión con el servidor', 'error');
     }
+  };
+
+  // 👇 NUEVO: Validador de clic para la grilla
+  const handleClassSelection = (cls: any) => {
+    // Si es estudiante y la materia ya está en su lista de reservas, bloqueamos.
+    if (userRole === 'student' && reservedSubjectIds.includes(cls.subject.id)) {
+      showToast(`Ya tienes una reserva o completaste la materia: ${cls.subject.name}`, 'error');
+      return; // Detiene la ejecución, no se abre el modal
+    }
+    // Si pasa la validación, abrimos el modal normalmente
+    setSelectedClass(cls);
   };
 
   const handleFixSession = () => {
@@ -123,7 +157,6 @@ export default function StudentSchedulePage() {
         onWeekChange={setSelectedWeekId} 
       />
 
-      {/* Alerta si no tiene licencias cargadas */}
       {userRole === 'student' && studentLicenses.length === 0 && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 flex flex-col md:flex-row items-start md:items-center gap-3 shadow-sm">
           <i className="bi bi-exclamation-triangle-fill text-yellow-600 text-xl"></i>
@@ -147,27 +180,25 @@ export default function StudentSchedulePage() {
           currentWeekData={currentWeekData}
           userRole={userRole}
           studentLicenses={studentLicenses}
-          onClassClick={setSelectedClass}
+          onClassClick={handleClassSelection} // 👈 MODIFICADO: Usa la nueva función
         />
       )}
 
-      {/* DETALLE DE CLASE */}
       {selectedClass && (
         <ClassDetailModal 
           cls={selectedClass} 
           onClose={() => setSelectedClass(null)} 
-          onReserve={handleReserveClick} // Ahora abre el confirm
+          onReserve={handleReserveClick} 
         />
       )}
 
-      {/* CONFIRMACIÓN DE RESERVA */}
       <ConfirmModal
         isOpen={showConfirm}
         onClose={() => setShowConfirm(false)}
         onConfirm={executeReservation}
         title="Confirmar Reserva"
         message={`¿Deseas reservar tu cupo para la clase de ${selectedClass?.subject?.name}?`}
-        type="info" // Usamos 'info' (azul) porque es una acción positiva
+        type="info" 
       />
 
     </div>
