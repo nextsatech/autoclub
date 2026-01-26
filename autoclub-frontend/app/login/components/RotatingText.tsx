@@ -80,7 +80,7 @@ const RotatingText = forwardRef<RotatingTextRef, RotatingTextProps>((props, ref)
 
   const [currentTextIndex, setCurrentTextIndex] = useState<number>(0);
 
-  // ✅ FIX TypeScript para Intl.Segmenter
+
   const splitIntoCharacters = (text: string): string[] => {
   const AnyIntl = Intl as any;
 
@@ -256,3 +256,4 @@ const RotatingText = forwardRef<RotatingTextRef, RotatingTextProps>((props, ref)
 
 RotatingText.displayName = 'RotatingText';
 export default RotatingText;
+</span>

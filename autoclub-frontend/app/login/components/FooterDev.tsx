@@ -1,4 +1,4 @@
-// app/login/components/FooterDev.tsx
+
 'use client';
 
 export default function FooterDev() {

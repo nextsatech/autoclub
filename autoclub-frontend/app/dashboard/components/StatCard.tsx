@@ -3,7 +3,7 @@ interface StatCardProps {
   value: string | number;
   icon: string;
   trend?: string;
-  color?: string; // ✅ Agregamos esta línea para aceptar el color
+  color?: string; 
 }
 
 export default function StatCard({ title, value, icon, trend, color }: StatCardProps) {
@@ -15,7 +15,7 @@ export default function StatCard({ title, value, icon, trend, color }: StatCardP
           <h3 className="text-3xl font-bold text-zinc-900 mt-2">{value}</h3>
         </div>
         
-        {/* Usamos el color si existe, si no, usamos el índigo por defecto */}
+        
         <div className={`p-3 rounded-xl ${color ? `${color} text-white` : 'bg-indigo-50 text-indigo-600'}`}>
           <i className={`bi ${icon} text-xl`}></i>
         </div>

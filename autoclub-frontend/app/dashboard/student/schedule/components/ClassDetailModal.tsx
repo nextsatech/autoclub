@@ -20,14 +20,9 @@ interface ClassDetailModalProps {
 export default function ClassDetailModal({ cls, onClose, onReserve }: ClassDetailModalProps) {
   if (!cls) return null;
 
-  // 1. CONFIGURACIÓN WHATSAPP ADMIN
-  const ADMIN_PHONE = "573001234567"; // ⚠️ PON AQUÍ EL NÚMERO REAL DEL ADMIN
-
   // Cálculos de fecha y hora
   const dateObj = new Date(cls.class_date);
-  const dayOfWeek = dateObj.getUTCDay(); // 0 = Domingo, 6 = Sábado
-  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-
+  
   // Cálculos de capacidad
   const total = cls.max_capacity;
   const available = cls.available_capacity;
@@ -38,13 +33,6 @@ export default function ClassDetailModal({ cls, onClose, onReserve }: ClassDetai
   const dateStr = dateObj.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
   const startStr = formatTime(cls.start_time);
   const endStr = formatTime(cls.end_time);
-
-  // 2. FUNCIÓN PARA REDIRIGIR A WHATSAPP
-  const handleWhatsAppRequest = () => {
-    const message = `Hola AutoClub, deseo reservar un cupo manual para la clase de *${cls.subject.name}* el día *${dateStr}* a las *${startStr}*. Quedo atento a la confirmación.`;
-    const url = `https://wa.me/${ADMIN_PHONE}?text=${encodeURIComponent(message)}`;
-    window.open(url, '_blank');
-  };
 
   return (
     <div 
@@ -60,10 +48,9 @@ export default function ClassDetailModal({ cls, onClose, onReserve }: ClassDetai
         <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-start bg-white/90 backdrop-blur-sm sticky top-0 z-10">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest
-                ${isWeekend ? 'bg-amber-100 text-amber-700' : 'bg-zinc-100 text-zinc-600'}`}>
-                <i className={`bi ${isWeekend ? 'bi-star-fill' : 'bi-calendar4'}`}></i> 
-                {isWeekend ? 'Fin de Semana' : dateStr}
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-600 text-[10px] font-bold uppercase tracking-widest">
+                <i className="bi bi-calendar4"></i> 
+                {dateStr}
               </span>
               {isFull && (
                 <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-red-50 text-red-600 text-[10px] font-bold uppercase tracking-widest border border-red-100">
@@ -86,21 +73,6 @@ export default function ClassDetailModal({ cls, onClose, onReserve }: ClassDetai
         {/* BODY */}
         <div className="p-8 overflow-y-auto custom-scrollbar">
           
-          {/* AVISO ESPECIAL FIN DE SEMANA */}
-          {isWeekend && (
-            <div className="mb-6 p-4 bg-amber-50 border border-amber-100 rounded-xl flex gap-3">
-              <div className="bg-amber-100 text-amber-600 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
-                <i className="bi bi-whatsapp"></i>
-              </div>
-              <div>
-                <h4 className="text-sm font-bold text-amber-900">Reserva Manual Requerida</h4>
-                <p className="text-xs text-amber-700 mt-1 leading-relaxed">
-                  Las clases de fin de semana requieren aprobación directa del administrador.
-                </p>
-              </div>
-            </div>
-          )}
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             
             {/* Tarjeta Horario */}
@@ -142,10 +114,12 @@ export default function ClassDetailModal({ cls, onClose, onReserve }: ClassDetai
                   </span>
                </div>
                
+               {/* Barra de Ocupación Visual */}
                <div className="flex gap-1.5 h-2.5">
                   {[...Array(10)].map((_, i) => {
                      const slotValue = (i + 1) * 10;
                      const isTaken = occupancyPercentage >= slotValue;
+
                      return (
                         <div 
                            key={i} 
@@ -167,39 +141,26 @@ export default function ClassDetailModal({ cls, onClose, onReserve }: ClassDetai
           </div>
         </div>
 
-        {/* FOOTER - LÓGICA DE BOTONES */}
+        {/* FOOTER - BOTÓN ÚNICO PARA TODOS LOS DÍAS */}
         <div className="p-6 border-t border-gray-100 bg-gray-50/50">
           
-          {isWeekend ? (
-             // --- BOTÓN PARA FINES DE SEMANA (WHATSAPP) ---
-             <button 
-              onClick={handleWhatsAppRequest}
-              className="w-full py-4 rounded-xl font-bold text-base tracking-wide shadow-lg flex items-center justify-center gap-3 transition-all transform active:scale-[0.98] bg-green-600 text-white hover:bg-green-700 hover:shadow-green-600/20"
-            >
-              <span>Solicitar por WhatsApp</span> 
-              <i className="bi bi-whatsapp"></i>
-            </button>
-
-          ) : (
-            // --- BOTÓN NORMAL (RESERVA AUTOMÁTICA) ---
-            <button 
-              onClick={onReserve}
-              disabled={isFull}
-              className={`w-full py-4 rounded-xl font-bold text-base tracking-wide shadow-lg flex items-center justify-center gap-3 transition-all transform active:scale-[0.98]
-                ${isFull 
-                  ? 'bg-zinc-200 text-zinc-400 cursor-not-allowed shadow-none' 
-                  : 'bg-black text-white hover:bg-zinc-800 hover:shadow-xl'}`}
-            >
-              {isFull ? (
-                <span>Lista de Espera (Lleno)</span>
-              ) : (
-                <> 
-                  <span>Reservar Clase</span> 
-                  <i className="bi bi-arrow-right"></i>
-                </>
-              )}
-            </button>
-          )}
+          <button 
+            onClick={onReserve}
+            disabled={isFull}
+            className={`w-full py-4 rounded-xl font-bold text-base tracking-wide shadow-lg flex items-center justify-center gap-3 transition-all transform active:scale-[0.98]
+              ${isFull 
+                ? 'bg-zinc-200 text-zinc-400 cursor-not-allowed shadow-none' 
+                : 'bg-black text-white hover:bg-zinc-800 hover:shadow-xl'}`}
+          >
+            {isFull ? (
+              <span>Lista de Espera (Lleno)</span>
+            ) : (
+              <> 
+                <span>Reservar Clase</span> 
+                <i className="bi bi-arrow-right"></i>
+              </>
+            )}
+          </button>
 
         </div>
       </div>

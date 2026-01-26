@@ -1,4 +1,4 @@
-// app/login/components/LoginSidebar.tsx - CON EFECTO SHINE
+
 'use client';
 
 import { motion } from 'framer-motion';
@@ -57,7 +57,7 @@ export default function LoginSidebar() {
             />
           </div>
 
-          {/* EFECTO SHINE AUTOMÁTICO (sin hover) - Más sutil */}
+          
           <motion.div
             initial={{ x: '-200%', y: '-200%' }}
             animate={{ 
@@ -87,14 +87,14 @@ export default function LoginSidebar() {
       {/* ELEMENTOS DECORATIVOS ANIMADOS */}
       <div className="space-y-6 w-full max-w-md">
         
-        {/* Decorative lines with icons */}
+        
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
           className="relative"
         >
-          {/* Top line with icon */}
+          
           <div className="flex items-center gap-4">
             <motion.div
               animate={{ rotate: [0, 10, -10, 0] }}
@@ -106,7 +106,7 @@ export default function LoginSidebar() {
             <div className="flex-1 h-px bg-gradient-to-r from-red-500/50 to-transparent"></div>
           </div>
 
-          {/* Center decorative element */}
+          
           <div className="my-8 flex justify-center">
             <motion.div
               animate={{ 
@@ -126,7 +126,7 @@ export default function LoginSidebar() {
             </motion.div>
           </div>
 
-          {/* Bottom line with icon */}
+          
           <div className="flex items-center gap-4">
             <div className="flex-1 h-px bg-gradient-to-l from-yellow-500/50 to-transparent"></div>
             <motion.div
@@ -139,14 +139,14 @@ export default function LoginSidebar() {
           </div>
         </motion.div>
 
-        {/* Floating geometric shapes */}
+        
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.7 }}
           className="relative h-32 overflow-hidden"
         >
-          {/* Shape 1 - Cuadrado rotado */}
+          
           <motion.div
             animate={{ 
               y: [0, -20, 0],
@@ -160,7 +160,7 @@ export default function LoginSidebar() {
             className="absolute top-0 left-8 w-16 h-16 border-2 border-red-500/20 rounded-2xl rotate-12"
           ></motion.div>
 
-          {/* Shape 2 - Círculo flotante */}
+          
           <motion.div
             animate={{ 
               y: [0, 20, 0],
@@ -175,7 +175,7 @@ export default function LoginSidebar() {
             className="absolute top-8 right-12 w-12 h-12 bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 rounded-full"
           ></motion.div>
 
-          {/* Shape 3 - Rombo pequeño */}
+          
           <motion.div
             animate={{ 
               y: [0, -15, 0],
@@ -190,7 +190,7 @@ export default function LoginSidebar() {
             className="absolute bottom-4 left-20 w-8 h-8 border-2 border-yellow-500/30 rounded-lg rotate-45"
           ></motion.div>
 
-          {/* Shape 4 - Punto pulsante */}
+          
           <motion.div
             animate={{ 
               scale: [1, 1.2, 1],
@@ -205,7 +205,7 @@ export default function LoginSidebar() {
           ></motion.div>
         </motion.div>
 
-        {/* Info text - subtle */}
+       
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -224,7 +224,7 @@ export default function LoginSidebar() {
 
       </div>
 
-      {/* Bottom accent line */}
+      
       <motion.div
         initial={{ scaleX: 0 }}
         animate={{ scaleX: 1 }}
@@ -232,7 +232,7 @@ export default function LoginSidebar() {
         className="w-full max-w-xs h-1 bg-gradient-to-r from-transparent via-red-500/50 to-transparent rounded-full"
       ></motion.div>
 
-      {/* CSS para la animación de gradiente del borde */}
+      
       <style jsx>{`
         @keyframes gradient-rotate {
           0% { 

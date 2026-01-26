@@ -18,7 +18,7 @@ export class ClassesController {
     return this.classesService.create(createClassDto);
   }
 
-  // Ahora sí funcionará esto:
+  
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.classesService.remove(id);

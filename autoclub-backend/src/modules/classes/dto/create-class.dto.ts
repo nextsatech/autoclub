@@ -1,7 +1,7 @@
 import { IsNotEmpty, IsDateString, IsNumber, Min, IsOptional } from 'class-validator';
 
 export class CreateClassDto {
-  // ELIMINADO: @IsString() title: string;  <-- Ya no usamos título manual
+  
 
   @IsNotEmpty()
   @IsNumber()

@@ -23,7 +23,7 @@ export default function DashboardLayout({
   }, [router]);
 
   return (
-    // 2. ENVOLVER TODO EL CONTENIDO CON TOASTPROVIDER
+    
     <ToastProvider>
       <div className="min-h-screen bg-zinc-50 flex">
         <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />

@@ -41,11 +41,11 @@ export default function LoginForm() {
       const data: LoginResponse = await res.json();
 
       if (res.ok) {
-        // Store token securely (consider httpOnly cookies in production)
+        
         localStorage.setItem('token', data.access_token);
         localStorage.setItem('user', JSON.stringify(data.user));
         
-        // Success animation before redirect
+        
         await new Promise(resolve => setTimeout(resolve, 800));
         
         if (data.user.role.name === 'admin') {

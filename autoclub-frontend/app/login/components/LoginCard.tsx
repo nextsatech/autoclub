@@ -1,4 +1,3 @@
-// app/login/components/LoginCard.tsx - IMPROVED VERSION
 'use client';
 
 import { motion } from 'framer-motion';
@@ -13,29 +12,29 @@ export default function LoginCard({ children }: { children: React.ReactNode }) {
       className="relative z-10 w-full max-w-[90%] sm:max-w-md"
     >
       
-      {/* Glow effect behind card */}
+
       <div className="absolute inset-0 bg-gradient-to-br from-red-600/20 to-yellow-500/20 blur-3xl -z-10 rounded-3xl"></div>
       
       <div className="bg-zinc-900/90 backdrop-blur-xl border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-red-900/30 relative overflow-hidden">
         
-        {/* Top decorative gradient */}
+
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-600 via-yellow-500 to-red-600 bg-size-200 animate-gradient"></div>
         
-        {/* Corner accent */}
+        
         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-500/10 to-transparent blur-2xl rounded-full"></div>
         
-        {/* --- HEADER WITH LOGO --- */}
+        
         <motion.div 
           className="mb-6 text-center"
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
-          {/* Small logo/icon */}
+          
           
         </motion.div>
 
-        {/* --- ROTATING TEXT (Title) --- */}
+        
         <div className="mb-8 text-center">
           <motion.h2
             initial={{ y: -10, opacity: 0 }}
@@ -62,10 +61,10 @@ export default function LoginCard({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        {/* Form injected here */}
+        
         {children}
 
-        {/* Bottom decorative line */}
+        
         <div className="mt-6 pt-6 border-t border-white/5 flex items-center justify-center gap-2 text-xs text-zinc-600">
           <i className="bi bi-shield-check text-green-500"></i>
           <span>Conexión segura y encriptada</span>
@@ -73,7 +72,7 @@ export default function LoginCard({ children }: { children: React.ReactNode }) {
 
       </div>
 
-      {/* Animated gradient keyframes */}
+      
       <style jsx>{`
         .bg-size-200 { background-size: 200% auto; }
         .animate-gradient { animation: gradient 3s linear infinite; }
