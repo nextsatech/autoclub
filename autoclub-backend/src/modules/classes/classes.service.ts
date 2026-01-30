@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateClassDto } from './dto/create-class.dto';
+import { UpdateClassDto } from './dto/update-class.dto';
 
 @Injectable()
 export class ClassesService {
@@ -22,7 +23,7 @@ export class ClassesService {
     });
     
     if (!subject) {
-        throw new NotFoundException('La materia especificada no existe');
+        throw new NotFoundException('La clase especificada no existe');
     }
 
     // 3. Crear la clase en la base de datos
@@ -89,6 +90,33 @@ export class ClassesService {
       data: { weekly_schedule_id: null }
     });
   }
+async findOne(id: number) {
+  const classSession = await this.prisma.class.findUnique({
+    where: { id },
+    include: {
+      subject: true,
+      professor: {
+        include: { user: true }
+      }
+    }
+  });
+
+  if (!classSession) {
+    throw new NotFoundException(`La clase con ID ${id} no existe`);
+  }
+
+  return classSession;
+}
+  async update(id: number, updateClassDto: UpdateClassDto) {
+  // Primero verificamos si existe
+  const existingClass = await this.findOne(id);
+  if (!existingClass) throw new NotFoundException(`Clase con ID ${id} no encontrada`);
+
+  return this.prisma.class.update({
+    where: { id },
+    data: updateClassDto,
+  });
+}
 
   async remove(id: number) {
 

@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-// Props nuevas
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -34,7 +33,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     }
   }, []);
 
-  // Cerrar el sidebar automáticamente cuando cambias de página (solo en móvil)
   useEffect(() => {
     onClose();
   }, [pathname]);
@@ -47,7 +45,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const isActive = (path: string) => pathname === path;
 
-  // Helpers visuales
   const getRoleLabel = (role: string) => {
     switch(role) {
       case 'admin': return 'Administrador';
@@ -89,44 +86,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         return (
           <>
             <SectionTitle>Mi Aprendizaje</SectionTitle>
-            
-            {/* 👇 AQUÍ ESTÁN LOS IDs AGREGADOS PARA EL TOUR */}
-            <NavLink 
-              id="sidebar-dashboard" 
-              href="/dashboard" 
-              icon="bi-grid-fill" 
-              label="Inicio" 
-              active={isActive('/dashboard')} 
-              activeClass={activeClass} 
-              inactiveClass={inactiveClass} 
-            />
-            <NavLink 
-              id="sidebar-curriculum" 
-              href="/dashboard/student/curriculum" 
-              icon="bi-journal-richtext" 
-              label="Malla Curricular" 
-              active={isActive('/dashboard/student/curriculum')} 
-              activeClass={activeClass} 
-              inactiveClass={inactiveClass} 
-            />
-            <NavLink 
-              id="sidebar-schedule" 
-              href="/dashboard/student/schedule" 
-              icon="bi-calendar-plus" 
-              label="Registrar Clases" 
-              active={isActive('/dashboard/student/schedule')} 
-              activeClass={activeClass} 
-              inactiveClass={inactiveClass} 
-            />
-            <NavLink 
-              id="sidebar-reservations" 
-              href="/dashboard/student/reservations" 
-              icon="bi-ticket-detailed" 
-              label="Mis Registros" 
-              active={isActive('/dashboard/student/reservations')} 
-              activeClass={activeClass} 
-              inactiveClass={inactiveClass} 
-            />
+            <NavLink id="sidebar-dashboard" href="/dashboard" icon="bi-grid-fill" label="Inicio" active={isActive('/dashboard')} activeClass={activeClass} inactiveClass={inactiveClass} />
+            <NavLink id="sidebar-curriculum" href="/dashboard/student/curriculum" icon="bi-journal-richtext" label="Malla Curricular" active={isActive('/dashboard/student/curriculum')} activeClass={activeClass} inactiveClass={inactiveClass} />
+            <NavLink id="sidebar-schedule" href="/dashboard/student/schedule" icon="bi-calendar-plus" label="Registrar Clases" active={isActive('/dashboard/student/schedule')} activeClass={activeClass} inactiveClass={inactiveClass} />
+            <NavLink id="sidebar-reservations" href="/dashboard/student/reservations" icon="bi-ticket-detailed" label="Mis Registros" active={isActive('/dashboard/student/reservations')} activeClass={activeClass} inactiveClass={inactiveClass} />
           </>
         );
       case 'professor':
@@ -143,40 +106,40 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   return (
     <>
-      {/* 1. OVERLAY (Fondo oscuro) - Solo visible en móvil cuando el menú está abierto */}
       <div 
         className={`fixed inset-0 bg-black/50 z-20 backdrop-blur-sm transition-opacity duration-300 md:hidden ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
         onClick={onClose}
       />
 
-      {/* 2. SIDEBAR - Deslizante en móvil, Fijo en escritorio */}
       <aside className={`
         w-64 bg-zinc-950 border-r border-zinc-800 flex flex-col h-full 
         fixed inset-y-0 left-0 z-30 
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
-        md:translate-x-0  /* En escritorio (md) siempre se muestra (reset transform) */
+        md:translate-x-0
       `}>
         
-        {/* HEADER DEL SIDEBAR */}
-        <div className="p-6 flex items-center justify-between border-b border-zinc-800/50">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-indigo-500/20">
-              <i className="bi bi-car-front-fill"></i>
-            </div>
-            <span className="font-black text-xl tracking-tight text-white">AutoClub</span>
+        <div className="flex flex-col items-center justify-center border-b border-zinc-800/50 relative">
+          <div className="w-full bg-gradient-to-b from-zinc-200/30 via-zinc-200/10 to-transparent py-5 px-4 flex justify-center items-center">
+            <img 
+              src="/logo.png" 
+              alt="AutoClub" 
+              className="w-full h-auto object-contain max-w-[190px] drop-shadow-[0_4px_12px_rgba(255,255,255,0.1)] animate-in fade-in zoom-in duration-700" 
+            />
           </div>
-          {/* Botón Cerrar (Solo móvil) */}
-          <button onClick={onClose} className="md:hidden text-zinc-400 hover:text-white">
+          
+          <button 
+            onClick={onClose} 
+            className="absolute top-3 right-3 md:hidden text-zinc-400 hover:text-white p-1"
+          >
             <i className="bi bi-x-lg text-lg"></i>
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1 custom-scrollbar">
+        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 custom-scrollbar">
           {renderLinks()}
         </nav>
 
-        {/* FOOTER USER */}
         <div className="p-4 border-t border-zinc-800 bg-zinc-900/30">
           <div className="mb-4 px-2">
             <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 flex items-center justify-between">
@@ -220,7 +183,6 @@ const SectionTitle = ({ children }: { children: React.ReactNode }) => (
   <p className="px-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 mt-6">{children}</p>
 );
 
-// 👇 NAVLINK AHORA ACEPTA 'id'
 const NavLink = ({ id, href, icon, label, active, activeClass, inactiveClass }: any) => (
   <Link id={id} href={href} className={`flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl transition-all ${active ? activeClass : inactiveClass}`}>
     <i className={`bi ${icon} text-lg`}></i>

@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, UseGuards, Request, Delete, Param, ParseIntPipe } from '@nestjs/common'; 
+import { Controller, Get, Post, Body, UseGuards, Request, Delete, Param, ParseIntPipe, Patch } from '@nestjs/common'; 
 import { ClassesService } from './classes.service';
 import { CreateClassDto } from './dto/create-class.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { UpdateClassDto } from './dto/update-class.dto';
 
 @Controller('classes')
 export class ClassesController {
@@ -23,4 +24,9 @@ export class ClassesController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.classesService.remove(id);
   }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateClassDto: UpdateClassDto) {
+  return this.classesService.update(+id, updateClassDto);
+}
 }

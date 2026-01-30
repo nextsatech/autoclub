@@ -1,33 +1,28 @@
+// app/dashboard/admin/classes/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useToast } from '@/app/context/ToastContext';
 import ConfirmModal from '@/app/components/ConfirmModal';
-import { API_URL } from '@/app/config/api'; // Importamos la variable centralizada
+import { API_URL } from '@/app/config/api';
+import ClassForm from './components/ClassForm'; // Asegúrate de crear la carpeta components
+import ClassList from './components/ClassList';
 
-interface User {
-  id: number;
-  full_name: string;
-}
-
-interface Professor {
-  id: number;
-  user: User;
-}
-
-interface Subject {
-  id: number;
-  name: string;
-}
-
+// Interfaces (Puedes moverlas a un archivo types.ts si prefieres)
+interface User { id: number; full_name: string; }
+interface Professor { id: number; user: User; }
+interface Subject { id: number; name: string; }
 interface ClassSession {
   id: number;
   subject?: Subject;
   class_date: string;
   start_time: string;
   end_time: string;
+  max_capacity: number; // Agregado para poder editar
   available_capacity: number;
   professor?: Professor;
+  professor_id?: number; // Útil para el form
+  subject_id?: number;   // Útil para el form
 }
 
 export default function AdminClassesPage() {
@@ -37,6 +32,9 @@ export default function AdminClassesPage() {
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   
+  // Estado para la Edición
+  const [editingClass, setEditingClass] = useState<ClassSession | null>(null);
+
   const { showToast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -51,22 +49,20 @@ export default function AdminClassesPage() {
   const loadData = async () => {
     try {
       const token = localStorage.getItem('token');
-      // CORRECCIÓN AQUÍ: Tipado explícito para evitar el error de build
       const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
 
-      const resClasses = await fetch(`${API_URL}/classes`, { headers });
+      const [resClasses, resProfessors, resSubjects] = await Promise.all([
+        fetch(`${API_URL}/classes`, { headers }),
+        fetch(`${API_URL}/professors`, { headers }),
+        fetch(`${API_URL}/subjects`, { headers })
+      ]);
+
       if (resClasses.ok) setClasses(await resClasses.json());
-
-      const resProfessors = await fetch(`${API_URL}/professors`, { headers });
       if (resProfessors.ok) setInstructors(await resProfessors.json());
-
-      const resSubjects = await fetch(`${API_URL}/subjects`, { headers });
-      if (resSubjects.ok) {
-        setSubjects(await resSubjects.json());
-      }
+      if (resSubjects.ok) setSubjects(await resSubjects.json());
 
     } catch (error) {
-      showToast('Error de conexión', 'error');
+      showToast('Error de conexión al cargar datos', 'error');
     } finally {
       setLoading(false);
     }
@@ -76,25 +72,75 @@ export default function AdminClassesPage() {
     loadData();
   }, []);
 
+  // --- LÓGICA DE EDICIÓN ---
+  const handleEditClick = (cls: ClassSession) => {
+    setEditingClass(cls);
+    
+    // Convertir fechas ISO a formatos para input (YYYY-MM-DD y HH:MM)
+    // Nota: Asumimos que class_date viene en ISO UTC.
+    const dateObj = new Date(cls.class_date);
+    const startObj = new Date(cls.start_time);
+    const endObj = new Date(cls.end_time);
+
+    // Ajuste simple para extraer la fecha (considerando que el input date espera YYYY-MM-DD)
+    const formattedDate = dateObj.toISOString().split('T')[0]; 
+    const formattedStart = startObj.toISOString().split('T')[1].substring(0, 5); // HH:MM
+    const formattedEnd = endObj.toISOString().split('T')[1].substring(0, 5);     // HH:MM
+
+    setFormData({
+      subject_id: cls.subject?.id.toString() || '',
+      class_date: formattedDate,
+      start_time: formattedStart,
+      end_time: formattedEnd,
+      max_capacity: cls.max_capacity || 5,
+      professor_id: cls.professor?.id.toString() || ''
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingClass(null);
+    setFormData({
+      subject_id: '',
+      class_date: '',
+      start_time: '',
+      end_time: '',
+      max_capacity: 5,
+      professor_id: ''
+    });
+  };
+
+  // --- SUBMIT (CREAR O ACTUALIZAR) ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
+    
+    // Construir fechas ISO manualmente para mantener el UTC
+    const isoStart = `${formData.class_date}T${formData.start_time}:00.000Z`;
+    const isoEnd = `${formData.class_date}T${formData.end_time}:00.000Z`;
+
+    const payload = {
+      subject_id: Number(formData.subject_id),
+      class_date: isoStart,
+      start_time: isoStart,
+      end_time: isoEnd,
+      max_capacity: Number(formData.max_capacity),
+      professor_id: Number(formData.professor_id)
+    };
 
     try {
-      const isoStart = `${formData.class_date}T${formData.start_time}:00.000Z`;
-      const isoEnd = `${formData.class_date}T${formData.end_time}:00.000Z`;
+      let url = `${API_URL}/classes`;
+      let method = 'POST';
+      let successMsg = 'Clase creada correctamente';
 
-      const payload = {
-        subject_id: Number(formData.subject_id),
-        class_date: isoStart,
-        start_time: isoStart,
-        end_time: isoEnd,
-        max_capacity: Number(formData.max_capacity),
-        professor_id: Number(formData.professor_id)
-      };
+      // Si estamos editando, cambiamos URL y método
+      if (editingClass) {
+        url = `${API_URL}/classes/${editingClass.id}`;
+        method = 'PATCH'; // O 'PUT' dependiendo de tu backend
+        successMsg = 'Clase actualizada correctamente';
+      }
 
-      const res = await fetch(`${API_URL}/classes`, {
-        method: 'POST',
+      const res = await fetch(url, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
@@ -104,25 +150,23 @@ export default function AdminClassesPage() {
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || 'Error al crear clase');
+        throw new Error(errorData.message || 'Error en la operación');
       }
       
-      showToast('Clase creada correctamente', 'success');
-      setFormData(prev => ({...prev, subject_id: '', professor_id: ''}));
-      loadData();
+      showToast(successMsg, 'success');
+      handleCancelEdit(); // Limpia el formulario y el estado de edición
+      loadData(); // Recarga la lista
 
     } catch (error: any) {
       showToast(`Error: ${error.message}`, 'error');
     }
   };
 
-  const confirmDelete = (id: number) => {
-    setDeleteId(id);
-  };
+  // --- ELIMINAR ---
+  const confirmDelete = (id: number) => setDeleteId(id);
 
   const executeDelete = async () => {
     if (!deleteId) return;
-
     const token = localStorage.getItem('token');
     try {
       const res = await fetch(`${API_URL}/classes/${deleteId}`, {
@@ -133,17 +177,17 @@ export default function AdminClassesPage() {
       if (res.ok) {
         setClasses(prev => prev.filter(c => c.id !== deleteId));
         showToast('Clase eliminada', 'success');
+        // Si borramos la clase que se estaba editando, limpiamos el form
+        if (editingClass?.id === deleteId) handleCancelEdit();
       } else {
         const err = await res.json();
-        showToast(`No se pudo eliminar: ${err.message || 'Error desconocido'}`, 'error');
+        showToast(`Error: ${err.message}`, 'error');
       }
     } catch (error) {
       showToast('Error de conexión', 'error');
     }
     setDeleteId(null);
   };
-
-  const getProfName = (cls: ClassSession) => cls.professor?.user?.full_name || 'Sin Asignar';
 
   if (loading) return <div className="p-10 text-gray-500">Cargando panel...</div>;
 
@@ -152,144 +196,23 @@ export default function AdminClassesPage() {
       <h1 className="text-2xl font-bold text-gray-900">Gestión de Clases</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm h-fit">
-          <h2 className="font-bold text-lg mb-4 flex items-center gap-2">
-            <span className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center text-sm"><i className="bi bi-plus-lg"></i></span>
-            Programar Clase
-          </h2>
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="text-xs font-bold text-gray-500 uppercase">Clase / Tema</label>
-              <select 
-                required
-                className="w-full mt-1 p-2 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-black focus:border-black outline-none"
-                value={formData.subject_id}
-                onChange={e => setFormData({...formData, subject_id: e.target.value})}
-              >
-                <option value="">Seleccionar clase...</option>
-                {subjects.length > 0 ? (
-                  subjects.map(sub => (
-                    <option key={sub.id} value={sub.id}>{sub.name}</option>
-                  ))
-                ) : (
-                  <option disabled>No hay clases cargadas</option>
-                )}
-              </select>
-            </div>
+        {/* COMPONENTE FORMULARIO */}
+        <ClassForm 
+          formData={formData}
+          setFormData={setFormData}
+          subjects={subjects}
+          instructors={instructors}
+          onSubmit={handleSubmit}
+          isEditing={!!editingClass}
+          onCancel={handleCancelEdit}
+        />
 
-            <div>
-              <label className="text-xs font-bold text-gray-500 uppercase">Fecha</label>
-              <input 
-                type="date" 
-                required
-                className="w-full mt-1 p-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-black"
-                value={formData.class_date}
-                onChange={e => setFormData({...formData, class_date: e.target.value})}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-bold text-gray-500 uppercase">Inicio</label>
-                <input type="time" required className="w-full mt-1 p-2 border rounded-lg text-sm" 
-                  value={formData.start_time} onChange={e => setFormData({...formData, start_time: e.target.value})} />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-gray-500 uppercase">Fin</label>
-                <input type="time" required className="w-full mt-1 p-2 border rounded-lg text-sm" 
-                  value={formData.end_time} onChange={e => setFormData({...formData, end_time: e.target.value})} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-bold text-gray-500 uppercase">Cupos</label>
-                <input 
-                  type="number" min="1" required
-                  className="w-full mt-1 p-2 border rounded-lg text-sm"
-                  value={formData.max_capacity}
-                  onChange={e => setFormData({...formData, max_capacity: Number(e.target.value)})}
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-gray-500 uppercase">Instructor</label>
-                <select 
-                  required
-                  className="w-full mt-1 p-2 border rounded-lg text-sm bg-white"
-                  value={formData.professor_id}
-                  onChange={e => setFormData({...formData, professor_id: e.target.value})}
-                >
-                  <option value="">Seleccionar...</option>
-                  {instructors.map(inst => (
-                    <option key={inst.id} value={inst.id}>{inst.user?.full_name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <button type="submit" className="w-full bg-black text-white py-3 rounded-lg font-bold hover:bg-gray-800 transition-all mt-2">
-              Crear Clase
-            </button>
-          </form>
-        </div>
-
-        <div className="lg:col-span-2 space-y-4">
-          <h2 className="font-bold text-lg text-gray-800">Clases Programadas</h2>
-          
-          {classes.length === 0 ? (
-            <div className="border-2 border-dashed border-gray-200 rounded-xl p-10 text-center text-gray-400">
-              <p>No hay clases registradas aún.</p>
-            </div>
-          ) : (
-            <div className="grid gap-3">
-              {classes.map(cls => (
-                <div key={cls.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex justify-between items-center group">
-                  <div className="flex items-center gap-4">
-                    <div className="flex flex-col items-center justify-center w-14 h-14 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-100">
-                      <span className="text-xs font-bold uppercase">
-                        {new Date(cls.class_date).toLocaleDateString('es-CO', { month: 'short', timeZone: 'UTC' })}
-                      </span>
-                      <span className="text-xl font-black">
-                        {new Date(cls.class_date).toLocaleDateString('es-CO', { day: 'numeric', timeZone: 'UTC' })}
-                      </span>
-                    </div>
-
-                    <div>
-                      <h3 className="font-bold text-gray-900 text-lg">
-                        {cls.subject?.name || 'Clase Desconocida'}
-                      </h3>
-                      
-                      <div className="text-sm text-gray-500 flex flex-wrap gap-x-4 mt-1">
-                        <span className="flex items-center gap-1 font-mono text-xs font-bold">
-                          {new Date(cls.start_time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', timeZone: 'UTC'})} - 
-                             {new Date(cls.end_time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', timeZone: 'UTC'})}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          {getProfName(cls)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col items-end gap-2">
-                    <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold">
-                      {cls.available_capacity} cupos
-                    </span>
-                    
-                    <button 
-                      onClick={() => confirmDelete(cls.id)}
-                      className="text-red-500 hover:text-red-700 text-xs font-bold flex items-center gap-1 hover:bg-red-50 px-2 py-1 rounded transition-colors"
-                    >
-                      <i className="bi bi-trash"></i> Eliminar
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* COMPONENTE LISTA */}
+        <ClassList 
+          classes={classes}
+          onDelete={confirmDelete}
+          onEdit={handleEditClick}
+        />
       </div>
 
       <ConfirmModal
