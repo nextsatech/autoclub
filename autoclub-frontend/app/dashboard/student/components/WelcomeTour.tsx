@@ -18,7 +18,6 @@ export default function WelcomeTour() {
     const isMobile = window.innerWidth < 768; 
 
     if (!tourCompleted) {
-      // 1. Definimos los pasos base (los del sidebar)
       const baseSteps = [
         { 
           element: '#sidebar-dashboard', 
@@ -61,7 +60,6 @@ export default function WelcomeTour() {
         }
       ];
 
-      // 2. Si es MÓVIL, agregamos un paso PREVIO para abrir el menú
       let driverSteps = baseSteps;
 
       if (isMobile) {
@@ -72,17 +70,7 @@ export default function WelcomeTour() {
               title: 'Menú de Navegación',
               description: 'Toca este botón para desplegar el menú y ver tus opciones.',
               side: 'bottom',
-              // TRUCO: Cuando le den "Siguiente" o toquen el elemento, 
-              // forzamos el click en el botón para que el menú se abra sí o sí.
-              onNextClick: () => {
-                const btn = document.getElementById('mobile-menu-btn');
-                if (btn) btn.click();
-                
-                // Esperamos un poquito a que la animación del menú termine antes de pasar al siguiente paso
-                setTimeout(() => {
-                   driverObj.moveNext();
-                }, 300);
-              }
+              align: 'start'
             }
           },
           ...baseSteps
@@ -96,7 +84,7 @@ export default function WelcomeTour() {
         doneBtnText: '¡Entendido! 🚗',
         nextBtnText: 'Siguiente',
         prevBtnText: 'Anterior',
-        steps: driverSteps, // Usamos la lista dinámica
+        steps: driverSteps,
         
         onDestroyStarted: () => {
           if (!driverObj.hasNextStep() || confirm("¿Quieres saltar el tutorial?")) {
