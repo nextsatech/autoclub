@@ -76,10 +76,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             <NavLink href="/dashboard" icon="bi-grid-fill" label="Panel Principal" active={isActive('/dashboard')} activeClass={activeClass} inactiveClass={inactiveClass} />
             <NavLink href="/dashboard/admin/schedules" icon="bi-calendar-week" label="Programación Semanal" active={isActive('/dashboard/admin/schedules')} activeClass={activeClass} inactiveClass={inactiveClass} />
             <NavLink href="/dashboard/admin/classes" icon="bi-easel2-fill" label="Crear Clases" active={isActive('/dashboard/admin/classes')} activeClass={activeClass} inactiveClass={inactiveClass} />
-            <NavLink href="/dashboard/admin/reservations" icon="bi-person-check-fill" label="Registro Manual" active={isActive('/dashboard/admin/reservations')} activeClass={activeClass} inactiveClass={inactiveClass} /> {/* NUEVO ENLACE */}
-            
+            <NavLink href="/dashboard/admin/reservations" icon="bi-person-check-fill" label="Registro Manual" active={isActive('/dashboard/admin/reservations')} activeClass={activeClass} inactiveClass={inactiveClass} />
+            <NavLink href="/dashboard/admin/allowed-students" icon="bi-file-earmark-lock2-fill" label="Lista de Admitidos" active={isActive('/dashboard/admin/allowed-students')} activeClass={activeClass} inactiveClass={inactiveClass} />
             <SectionTitle>Configuración</SectionTitle>
-            <NavLink href="/dashboard/admin/subjects" icon="bi-book-half" label="Materias" active={isActive('/dashboard/admin/subjects')} activeClass={activeClass} inactiveClass={inactiveClass} />
+            <NavLink href="/dashboard/admin/subjects" icon="bi-book-half" label="Clases" active={isActive('/dashboard/admin/subjects')} activeClass={activeClass} inactiveClass={inactiveClass} />
             <NavLink href="/dashboard/admin/modules" icon="bi-layers-fill" label="Módulos" active={isActive('/dashboard/admin/modules')} activeClass={activeClass} inactiveClass={inactiveClass} />
             <NavLink href="/dashboard/admin/users" icon="bi-people-fill" label="Usuarios" active={isActive('/dashboard/admin/users')} activeClass={activeClass} inactiveClass={inactiveClass} />
             <NavLink href="/dashboard/admin/categories" icon="bi-tags-fill" label="Licencias" active={isActive('/dashboard/admin/categories')} activeClass={activeClass} inactiveClass={inactiveClass} />
@@ -89,10 +89,44 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         return (
           <>
             <SectionTitle>Mi Aprendizaje</SectionTitle>
-            <NavLink href="/dashboard" icon="bi-grid-fill" label="Inicio" active={isActive('/dashboard')} activeClass={activeClass} inactiveClass={inactiveClass} />
-            <NavLink href="/dashboard/student/curriculum" icon="bi-journal-richtext" label="Malla Curricular" active={isActive('/dashboard/student/curriculum')} activeClass={activeClass} inactiveClass={inactiveClass} />
-            <NavLink href="/dashboard/student/schedule" icon="bi-calendar-plus" label="Registrar Clases" active={isActive('/dashboard/student/schedule')} activeClass={activeClass} inactiveClass={inactiveClass} />
-            <NavLink href="/dashboard/student/reservations" icon="bi-ticket-detailed" label="Mis Registros" active={isActive('/dashboard/student/reservations')} activeClass={activeClass} inactiveClass={inactiveClass} />
+            
+            {/* 👇 AQUÍ ESTÁN LOS IDs AGREGADOS PARA EL TOUR */}
+            <NavLink 
+              id="sidebar-dashboard" 
+              href="/dashboard" 
+              icon="bi-grid-fill" 
+              label="Inicio" 
+              active={isActive('/dashboard')} 
+              activeClass={activeClass} 
+              inactiveClass={inactiveClass} 
+            />
+            <NavLink 
+              id="sidebar-curriculum" 
+              href="/dashboard/student/curriculum" 
+              icon="bi-journal-richtext" 
+              label="Malla Curricular" 
+              active={isActive('/dashboard/student/curriculum')} 
+              activeClass={activeClass} 
+              inactiveClass={inactiveClass} 
+            />
+            <NavLink 
+              id="sidebar-schedule" 
+              href="/dashboard/student/schedule" 
+              icon="bi-calendar-plus" 
+              label="Registrar Clases" 
+              active={isActive('/dashboard/student/schedule')} 
+              activeClass={activeClass} 
+              inactiveClass={inactiveClass} 
+            />
+            <NavLink 
+              id="sidebar-reservations" 
+              href="/dashboard/student/reservations" 
+              icon="bi-ticket-detailed" 
+              label="Mis Registros" 
+              active={isActive('/dashboard/student/reservations')} 
+              activeClass={activeClass} 
+              inactiveClass={inactiveClass} 
+            />
           </>
         );
       case 'professor':
@@ -186,8 +220,9 @@ const SectionTitle = ({ children }: { children: React.ReactNode }) => (
   <p className="px-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 mt-6">{children}</p>
 );
 
-const NavLink = ({ href, icon, label, active, activeClass, inactiveClass }: any) => (
-  <Link href={href} className={`flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl transition-all ${active ? activeClass : inactiveClass}`}>
+// 👇 NAVLINK AHORA ACEPTA 'id'
+const NavLink = ({ id, href, icon, label, active, activeClass, inactiveClass }: any) => (
+  <Link id={id} href={href} className={`flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl transition-all ${active ? activeClass : inactiveClass}`}>
     <i className={`bi ${icon} text-lg`}></i>
     {label}
   </Link>

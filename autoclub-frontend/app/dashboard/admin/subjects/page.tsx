@@ -89,7 +89,7 @@ export default function SubjectsPage() {
       });
 
       if (res.ok) {
-        showToast(editingId ? 'Materia actualizada' : 'Materia creada', 'success');
+        showToast(editingId ? 'Clase actualizada' : 'Clase creada', 'success');
         handleCancel();
         loadData();
       } else {
@@ -115,7 +115,7 @@ export default function SubjectsPage() {
       });
       
       if (res.ok) {
-        showToast('Materia eliminada', 'success');
+        showToast('Clase eliminada', 'success');
         loadData();
       } else {
         showToast('No se puede eliminar. Verifique si tiene clases asignadas.', 'error');
@@ -126,12 +126,12 @@ export default function SubjectsPage() {
     setDeleteId(null);
   };
 
-  if (loading) return <div className="p-8 text-gray-400">Cargando materias...</div>;
+  if (loading) return <div className="p-8 text-gray-400">Cargando Clases...</div>;
 
   return (
     <div className="p-6 space-y-8 animate-in fade-in relative">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Gestión de Materias</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Gestión de Clases</h1>
         {editingId && (
           <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-bold animate-pulse">
             Modo Edición Activo
@@ -143,7 +143,7 @@ export default function SubjectsPage() {
         
         <div className={`bg-white p-6 rounded-xl border shadow-sm h-fit transition-all ${editingId ? 'border-blue-500 ring-1 ring-blue-500' : 'border-gray-200'}`}>
           <h2 className="font-bold mb-4 flex justify-between items-center">
-            {editingId ? 'Editar Materia' : 'Nueva Materia'}
+            {editingId ? 'Editar Clase' : 'Nueva Clase'}
             {editingId && <button onClick={handleCancel} className="text-xs text-red-500 hover:underline">Cancelar</button>}
           </h2>
           
@@ -189,7 +189,7 @@ export default function SubjectsPage() {
 
             <div className="flex gap-2">
               <button className="flex-1 bg-black text-white py-2.5 rounded-lg font-bold hover:bg-zinc-800 transition-colors shadow-lg shadow-zinc-900/10">
-                {editingId ? 'Actualizar Cambios' : 'Guardar Materia'}
+                {editingId ? 'Actualizar Cambios' : 'Guardar Clase'}
               </button>
             </div>
           </form>
@@ -209,7 +209,7 @@ export default function SubjectsPage() {
               <tbody className="divide-y divide-gray-100">
                 {subjects.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="p-8 text-center text-gray-400">No hay materias registradas.</td>
+                    <td colSpan={4} className="p-8 text-center text-gray-400">No hay Clases registradas.</td>
                   </tr>
                 ) : (
                   subjects.map(sub => (
@@ -252,8 +252,8 @@ export default function SubjectsPage() {
         isOpen={!!deleteId}
         onClose={() => setDeleteId(null)}
         onConfirm={executeDelete}
-        title="¿Eliminar Materia?"
-        message="Esta acción eliminará la materia. Si tiene clases activas o historial, podría fallar o causar inconsistencias."
+        title="¿Eliminar Clase?"
+        message="Esta acción eliminará la Clase. Si tiene clases activas o historial, podría fallar o causar inconsistencias."
         type="danger"
       />
     </div>

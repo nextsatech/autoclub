@@ -37,8 +37,10 @@ export default function Header({ onMenuClick }: HeaderProps) {
     <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 md:px-6 sticky top-0 z-10 shadow-sm md:shadow-none">
       
       <div className="flex items-center gap-4">
+        
         {/* --- BOTÓN HAMBURGUESA (Visible solo en móvil 'md:hidden') --- */}
         <button 
+        id="mobile-menu-btn"
           onClick={onMenuClick}
           className="md:hidden text-gray-600 hover:text-black focus:outline-none active:scale-95 transition-transform"
         >

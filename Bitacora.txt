@@ -112,6 +112,11 @@ estatico ya que no se puede sobrecargar la pagian con tantas animaciones y movim
 
 que se cierre la sesion despues de ceirto tiempo
 
-CAMBIAR NOMBRE DE MATERIAS A CLASE
+CAMBIAR NOMBRE DE MATERIAS A CLASE (Realizado)
 
-Quitar la regla del registro manual los fines de semana
+Quitar la regla del registro manual los fines de semana(realizado)
+
+Hace la pagina de registro que solo funcione con el QR(Realizado, falta implementarlo en el vps)
+
+Quitar que se pueda escoger clases despues de pasada la fecha o poner un interruptor que se oculte la semana
+o la escogencia de clases despues de escogida una fecha

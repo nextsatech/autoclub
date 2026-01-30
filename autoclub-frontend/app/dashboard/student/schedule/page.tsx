@@ -55,7 +55,7 @@ export default function StudentSchedulePage() {
       }
     };
 
-    // 👇 NUEVO: Función para buscar las materias que este estudiante ya tiene
+   
     const fetchMyReservations = async () => {
       const token = localStorage.getItem('token');
       try {

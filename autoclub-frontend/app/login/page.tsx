@@ -1,38 +1,34 @@
-
-import OrbBackground from './components/OrbBackground';
-import LoginCard from './components/LoginCard';
-import LoginForm from './components/LoginForm';
-import FooterDev from './components/FooterDev';
-import LoginSidebar from './components/LoginSidebar';
-import FloatingParticles from './components/FloatingParticles';
+import LoginBackground from './components/LoginBackground';
+import LoginFormCard from './components/LoginFormCard';
 
 export default function LoginPage() {
   return (
-    <main className="relative min-h-[100dvh] w-full bg-black overflow-hidden font-sans flex items-center justify-center">
+    <main className="relative min-h-screen w-full flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden bg-white">
       
-      
-      <OrbBackground />
-      <FloatingParticles />
-      
-      
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+      <LoginBackground />
+
+      <div className="relative z-30 w-full lg:w-[40%] min-h-screen flex flex-col items-center justify-center p-6 lg:p-12">
+        
+        {/* LOGO + ESLOGAN MÓVIL */}
+        <div className="lg:hidden w-full flex flex-col items-center mb-8 animate-in fade-in zoom-in duration-1000">
+          <img
+            src="/logo.png"
+            alt="AutoClub Bogotá"
+            className="w-full h-auto drop-shadow-xl"
+            style={{ maxWidth: '200px' }}
+          />
           
-          
-          <LoginSidebar />
-          
-          
-          <div className="flex flex-col items-center gap-6">
-            <LoginCard>
-              <LoginForm />
-            </LoginCard>
-            
-            <FooterDev />
-          </div>
-          
+          {/* 👇 CAMBIO: mt-2 (Más pegado) y efecto brillante */}
+          <p className="mt-2 text-center text-sm font-bold max-w-[280px] leading-relaxed animate-in slide-in-from-bottom-2 duration-1000 delay-200 bg-gradient-to-br from-zinc-700 via-blue-600 to-cyan-500 bg-clip-text text-transparent drop-shadow-sm">
+            Organiza tus clases teóricas y de taller de forma fácil y ágil
+          </p>
+        </div>
+
+        <div className="w-full max-w-md">
+          <LoginFormCard />
         </div>
       </div>
 
     </main>
   );
-}</div>
+}

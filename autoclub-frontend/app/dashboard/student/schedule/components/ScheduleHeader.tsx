@@ -11,7 +11,7 @@ export default function ScheduleHeader({ weeks, selectedWeekId, onWeekChange }: 
     <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-zinc-100 pb-4 md:pb-6 gap-4 md:gap-6 sticky top-0 bg-zinc-50 z-10 pt-2 md:static">
       <div>
         <h1 className="text-2xl md:text-4xl font-black text-zinc-900 tracking-tight">Tu Horario</h1>
-        <p className="text-zinc-500 mt-1 text-xs md:text-lg font-medium">Reserva tus clases prácticas.</p>
+        <p className="text-zinc-500 mt-1 text-xs md:text-lg font-medium">Reserva tus clases.</p>
       </div>
 
       <div className="relative group w-full md:w-auto min-w-[200px] md:min-w-[300px]">

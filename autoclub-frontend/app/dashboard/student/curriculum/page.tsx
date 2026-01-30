@@ -63,7 +63,7 @@ export default function CurriculumPage() {
       
       <div>
         <h1 className="text-3xl font-black text-gray-900 tracking-tight">Tu Malla Curricular</h1>
-        <p className="text-gray-500 mt-2 text-lg">Explora los módulos y materias de tu plan de estudios.</p>
+        <p className="text-gray-500 mt-2 text-lg">Explora los módulos y clases correspondientes.</p>
       </div>
 
       <div className="space-y-4">
@@ -91,7 +91,7 @@ export default function CurriculumPage() {
                     </div>
                     <div>
                       <h3 className={`font-bold text-lg ${isOpen ? 'text-indigo-900' : 'text-gray-900'}`}>{mod.name}</h3>
-                      <p className="text-sm text-gray-500">{subjectCount} {subjectCount === 1 ? 'Materia' : 'Materias'}</p>
+                      <p className="text-sm text-gray-500">{subjectCount} {subjectCount === 1 ? 'Clase' : 'Clases'}</p>
                     </div>
                   </div>
                   <i className={`bi bi-chevron-down text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180 text-indigo-500' : ''}`}></i>
@@ -101,7 +101,7 @@ export default function CurriculumPage() {
                   <div className="p-6 pt-0 border-t border-gray-100 bg-gray-50/30">
                     <div className="grid gap-3 pt-4">
                       {subjectCount === 0 ? (
-                        <p className="text-sm text-gray-400 italic">No hay materias en este módulo.</p>
+                        <p className="text-sm text-gray-400 italic">No hay clases en este módulo.</p>
                       ) : (
                         mod.subjects?.map((sub) => (
                           <div key={sub.id} className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all">

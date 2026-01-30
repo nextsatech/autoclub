@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
-
-import { ToastProvider } from '../context/ToastContext'; 
+import { ToastProvider } from '../context/ToastContext';
+import WelcomeTour from './student/components/WelcomeTour';
 
 export default function DashboardLayout({
   children,
@@ -23,7 +23,6 @@ export default function DashboardLayout({
   }, [router]);
 
   return (
-    
     <ToastProvider>
       <div className="min-h-screen bg-zinc-50 flex">
         <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
@@ -32,6 +31,7 @@ export default function DashboardLayout({
           <Header onMenuClick={() => setIsSidebarOpen(true)} />
           
           <main className="flex-1 p-4 md:p-8 overflow-y-auto">
+            <WelcomeTour />
             {children}
           </main>
         </div>

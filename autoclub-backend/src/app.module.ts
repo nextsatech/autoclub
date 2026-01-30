@@ -13,6 +13,7 @@ import { StudentsModule } from './modules/students/students.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { UsersModule } from './modules/users/users.module';
 import { ModulesModule } from './modules/modules/modules.module';
+import { AllowedStudentsModule } from './modules/allowed-students/allowed-students.module';
 
 
 @Module({
@@ -28,7 +29,8 @@ import { ModulesModule } from './modules/modules/modules.module';
     StudentsModule, 
     RolesModule, 
     UsersModule,
-    ModulesModule
+    ModulesModule,
+    AllowedStudentsModule
   ],
   controllers: [AppController],
   providers: [AppService],

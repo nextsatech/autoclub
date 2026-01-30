@@ -2,6 +2,7 @@ import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto'; 
 import { ApiTags, ApiOperation } from '@nestjs/swagger'; 
+import { CreateUserDto } from '../users/dto/create-user.dto';
 
 @ApiTags('Auth') 
 @Controller('auth')
@@ -20,5 +21,11 @@ export class AuthController {
     }
 
     return this.authService.login(user);
+  }
+
+  @Post('register')
+  @ApiOperation({ summary: 'Registrar nuevo estudiante (Validando Lista Blanca)' })
+  async register(@Body() createUserDto: CreateUserDto) {
+    return this.authService.register(createUserDto);
   }
 }

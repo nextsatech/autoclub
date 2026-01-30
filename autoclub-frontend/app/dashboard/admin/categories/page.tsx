@@ -133,7 +133,7 @@ export default function CategoriesPage() {
                   <h3 className="text-2xl font-black text-gray-900">{cat.name}</h3>
                   <div className="text-xs text-gray-500 mt-1 space-x-2 font-medium">
                     <span className="bg-gray-50 px-2 py-1 rounded">👨‍🎓 {cat._count?.students || 0} alumnos</span>
-                    <span className="bg-gray-50 px-2 py-1 rounded">📚 {cat._count?.subjects || 0} materias</span>
+                    <span className="bg-gray-50 px-2 py-1 rounded">📚 {cat._count?.subjects || 0} clases</span>
                   </div>
                 </div>
                 <button 
@@ -155,7 +155,7 @@ export default function CategoriesPage() {
         onClose={() => setDeleteId(null)} // Se cierra si el usuario cancela
         onConfirm={executeDelete}         // Ejecuta la función real si confirma
         title="¿Eliminar Categoría?"
-        message="Esta acción no se puede deshacer. Si hay estudiantes o materias ligadas a esta categoría, podría fallar."
+        message="Esta acción no se puede deshacer. Si hay estudiantes o clases ligadas a esta categoría, podría fallar."
         type="danger"
       />
     </div>

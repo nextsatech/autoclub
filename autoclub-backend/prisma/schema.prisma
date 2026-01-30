@@ -11,8 +11,9 @@ model LicenseCategory {
   id   Int    @id @default(autoincrement())
   name String @unique // Ej: "A2", "B1", "C1"
 
-  subjects Subject[]
-  students Student[]
+  subjects        Subject[]
+  students        Student[]
+  allowedStudents AllowedStudent[]
 }
 
 model Module {
@@ -48,7 +49,7 @@ model User {
   email           String     @unique
   password_hash   String
   full_name       String
-  document_type   String? // Ej: CC, TI, CE
+  document_type   String?
   document_number String?    @unique
   role_id         Int
   role            Role       @relation(fields: [role_id], references: [id])
@@ -74,17 +75,17 @@ model Professor {
 
 model WeeklySchedule {
   id         Int      @id @default(autoincrement())
-  name       String // Ej: "Semana 2 - Enero 2026"
-  start_date DateTime // 2026-01-05
-  end_date   DateTime // 2026-01-11
-  is_active  Boolean  @default(false) // <-- Para ocultarla hasta que esté lista
-  classes    Class[] // Relación: Una semana tiene muchas clases
+  name       String
+  start_date DateTime
+  end_date   DateTime
+  is_active  Boolean  @default(false)
+  classes    Class[]
 }
 
 // 3. Programación de Clases 
 model Class {
-  id         Int     @id @default(autoincrement())
-  // title           String?  <-- ELIMINADO: Ya no escribimos títulos a mano
+  id Int @id @default(autoincrement())
+
   subject_id Int
   subject    Subject @relation(fields: [subject_id], references: [id])
 
@@ -113,4 +114,14 @@ model Reservation {
   class      Class    @relation(fields: [class_id], references: [id])
   created_at DateTime @default(now())
   attendance Boolean? // null = Sin confirmar, true = Asistió, false = No asistió (Falla)
+}
+
+model AllowedStudent {
+  id                  Int              @id @default(autoincrement())
+  document_number     String           @unique // La cédula permitida
+  full_name           String? // Opcional: para saber quién es
+  license_category_id Int?
+  license_category    LicenseCategory? @relation(fields: [license_category_id], references: [id])
+  is_registered       Boolean          @default(false) // Para saber si ya usó su cupo
+  created_at          DateTime         @default(now())
 }

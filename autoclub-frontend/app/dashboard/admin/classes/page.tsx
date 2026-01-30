@@ -161,20 +161,20 @@ export default function AdminClassesPage() {
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-xs font-bold text-gray-500 uppercase">Materia / Tema</label>
+              <label className="text-xs font-bold text-gray-500 uppercase">Clase / Tema</label>
               <select 
                 required
                 className="w-full mt-1 p-2 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-black focus:border-black outline-none"
                 value={formData.subject_id}
                 onChange={e => setFormData({...formData, subject_id: e.target.value})}
               >
-                <option value="">Seleccionar Materia...</option>
+                <option value="">Seleccionar clase...</option>
                 {subjects.length > 0 ? (
                   subjects.map(sub => (
                     <option key={sub.id} value={sub.id}>{sub.name}</option>
                   ))
                 ) : (
-                  <option disabled>No hay materias cargadas</option>
+                  <option disabled>No hay clases cargadas</option>
                 )}
               </select>
             </div>
@@ -258,7 +258,7 @@ export default function AdminClassesPage() {
 
                     <div>
                       <h3 className="font-bold text-gray-900 text-lg">
-                        {cls.subject?.name || 'Materia Desconocida'}
+                        {cls.subject?.name || 'Clase Desconocida'}
                       </h3>
                       
                       <div className="text-sm text-gray-500 flex flex-wrap gap-x-4 mt-1">

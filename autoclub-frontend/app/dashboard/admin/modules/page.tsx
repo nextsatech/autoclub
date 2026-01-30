@@ -120,7 +120,7 @@ export default function ModulesPage() {
             <div key={m.id} className={`flex justify-between items-center p-4 bg-white rounded-xl border shadow-sm transition-all ${editingId === m.id ? 'border-zinc-900 ring-1 ring-zinc-900' : 'border-gray-100'}`}>
               <div>
                 <h4 className="font-bold text-lg">{m.name}</h4>
-                <p className="text-xs text-gray-400">{m.subjects?.length || 0} materias vinculadas</p>
+                <p className="text-xs text-gray-400">{m.subjects?.length || 0} clases vinculadas</p>
               </div>
               <div className="flex gap-2">
                 <button onClick={() => handleEdit(m)} className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-colors">
@@ -140,7 +140,7 @@ export default function ModulesPage() {
         onClose={() => setDeleteId(null)}
         onConfirm={executeDelete}
         title="¿Eliminar Módulo?"
-        message="Esta acción no se puede deshacer. Asegúrate de que no haya materias vinculadas."
+        message="Esta acción no se puede deshacer. Asegúrate de que no haya clases vinculadas."
         type="danger"
       />
     </div>
