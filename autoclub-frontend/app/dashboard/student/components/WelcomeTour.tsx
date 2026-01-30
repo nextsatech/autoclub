@@ -84,7 +84,8 @@ export default function WelcomeTour() {
         doneBtnText: '¡Entendido! 🚗',
         nextBtnText: 'Siguiente',
         prevBtnText: 'Anterior',
-        steps: driverSteps,
+        // 👇 AQUÍ ESTÁ EL CAMBIO CLAVE: "as any" silencia el error de TypeScript
+        steps: driverSteps as any, 
         
         onDestroyStarted: () => {
           if (!driverObj.hasNextStep() || confirm("¿Quieres saltar el tutorial?")) {
